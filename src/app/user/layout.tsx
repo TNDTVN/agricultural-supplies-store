@@ -16,9 +16,9 @@ export default function RootLayout({
       <body className="flex top-0 flex-col min-h-screen bg-gray-100">
           <nav className="top-0 w-full flex items-center justify-between bg-green-700 p-4 text-white z-10">
                 <h1 className="text-xl font-bold">FarmTech</h1>
-                <a href={"/"}>
+                <a href={"/admin"}>
                     <Button variant="outline" className="border-white text-black hover:bg-white hover:text-green-700">
-                        Thoát
+                        Đăng nhập
                     </Button>
                 </a>
             </nav>
