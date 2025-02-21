@@ -5,7 +5,7 @@ const A = () => {
     return (
         <main>
             <div>Product</div>
-            <Link href="/">
+            <Link href="/user">
                 <Button>Về</Button>
             </Link>
         </main>
