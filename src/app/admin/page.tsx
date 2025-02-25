@@ -1,7 +1,25 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Product } from "@/types/product";
+import { useEffect, useState } from "react";
+
 export default function HomeAdmim() {
+    const [products, setProducts] = useState<Product[]>([]);
+    
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch("http://localhost:8080/api/products");
+                const data = await response.json();
+                setProducts(data);
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        };
+        fetchProducts();
+    }, []);
     return (
         <main className="p-4">
         <div className="mb-4 flex justify-between">
@@ -17,18 +35,18 @@ export default function HomeAdmim() {
                     <TableHeader>
                         <TableRow>
                         <TableHead>ID</TableHead>
-                        <TableHead>Khách hàng</TableHead>
-                        <TableHead>Tổng tiền</TableHead>
-                        <TableHead>Trạng thái</TableHead>
+                        <TableHead>Tên sản phẩm</TableHead>
+                        <TableHead>Giá</TableHead>
+                        <TableHead>Giới thiệu</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {[...Array(5)].map((_, index) => (
-                        <TableRow key={index}>
-                            <TableCell>#{index + 1}</TableCell>
-                            <TableCell>Nguyễn Văn A</TableCell>
-                            <TableCell>1.000.000₫</TableCell>
-                            <TableCell className="text-green-600">Hoàn thành</TableCell>
+                        {products.map((product) => (
+                        <TableRow key={product.id}>
+                            <TableCell>{product.id}</TableCell>
+                            <TableCell>{product.name}</TableCell>
+                            <TableCell> {product.price.toLocaleString()} VND</TableCell>
+                            <TableCell className="text-green-600">{product.description}</TableCell>
                         </TableRow>
                         ))}
                     </TableBody>

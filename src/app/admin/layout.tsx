@@ -38,11 +38,11 @@ export default function AdminLayout({
                             <h1 className="text-2xl font-bold">FarmTech</h1>
                         </Link>
                     </div>
-                    <a href={"/user"}>
+                    <Link href={"/user"}>
                         <Button variant="outline" className="border-white text-black hover:bg-white hover:text-green-700">
                             Thoát
                         </Button>
-                    </a>
+                    </Link>
                 </nav>
                 <main>
                 {children}

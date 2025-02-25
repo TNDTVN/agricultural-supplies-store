@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className="flex top-0 flex-col min-h-screen bg-gray-100">
+      <body className="flex top-0 flex-col min-h-screen bg-white">
           <nav className="top-0 w-full flex items-center justify-between bg-green-700 p-4 text-white z-10">
               <div className="flex items-center gap-3">
                 <Link href="/user" className="flex items-center gap-2">
@@ -31,11 +31,11 @@ export default function RootLayout({
                     <h1 className="text-2xl font-bold">FarmTech</h1>
                 </Link>
             </div>
-              <a href={"/admin"}>
+              <Link href={"/admin"}>
                   <Button variant="outline" className="border-white text-black hover:bg-white hover:text-green-700">
                       Đăng nhập
                   </Button>
-              </a>
+              </Link>
           </nav>
             <main>
               {children}
