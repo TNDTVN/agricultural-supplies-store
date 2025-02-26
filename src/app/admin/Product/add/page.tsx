@@ -25,7 +25,7 @@ export default function AddProduct() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(product),
         });
-        router.push("/admin/product");
+        router.push("/admin");
     };
 
     return (

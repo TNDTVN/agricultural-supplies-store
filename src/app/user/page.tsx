@@ -24,14 +24,26 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="p-4 flex justify-center">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 w-full px-8 md:px-16 lg:px-32 gap-0">
+    <main className="flex flex-col items-center">
+      <div className="w-full h-[600px] relative mb-8">
+        <Image
+          src="/images/banner.jpg"
+          alt="Khuyến mãi đặc biệt"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
+      <div className="w-full mb-8 flex justify-center">
+        <h2 className="text-3xl font-bold text-center">Sản Phẩm Mới</h2>
+      </div>
+      <div className="mb-12 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 w-full px-8 md:px-16 lg:px-32 gap-0">
         {products.map((product) => (
           <div key={product.id} className="w-full flex">
             <Card className="border-r bg-white border-transparent overflow-hidden w-[250px] h-[380px] relative group rounded-none transition-all duration-300 hover:border-red-500 hover:-translate-y-1 hover:shadow-lg">
               <CardContent className="p-4 flex flex-col items-center text-center">
                 <div className="relative w-[250px] h-[250px]">
-                  <Image src={"/"+product.imageUrl} alt={product.name} fill className="object-cover" priority />
+                  <Image src={"/images/"+product.imageUrl} alt={product.name} fill className="object-cover" priority />
                 </div>
                 <h2 className="mt-3 text-lg font-semibold">{product.name}</h2>
                 <p className="text-red-500 font-bold text-base mt-1">
