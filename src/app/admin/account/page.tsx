@@ -56,14 +56,14 @@ export default function AccountIndex() {
                     </TableHeader>
                     <TableBody>
                         {accounts.map((account) => (
-                            <TableRow key={account.id}>
-                                <TableCell>{account.id}</TableCell>
+                            <TableRow key={account.accountID}>
+                                <TableCell>{account.accountID}</TableCell>
                                 <TableCell>{account.username}</TableCell>
                                 <TableCell>{account.email}</TableCell>
                                 <TableCell>{account.role}</TableCell>
                                 <TableCell>
-                                    <Button onClick={() => router.push(`/admin/account/edit/${account.id}`)}>Sửa</Button>
-                                    <Button onClick={() => deleteAccount(account.id)} className="ml-2 bg-red-600">Xóa</Button>
+                                    <Button onClick={() => router.push(`/admin/account/edit/${account.accountID}`)}>Sửa</Button>
+                                    <Button onClick={() => deleteAccount(account.accountID)} className="ml-2 bg-red-600">Xóa</Button>
                                 </TableCell>
                             </TableRow>
                         ))}

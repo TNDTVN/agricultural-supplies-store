@@ -2,11 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function AddProduct() {
+export default function EditProduct() {
     const router = useRouter();
+    const { id } = useParams();
     const [product, setProduct] = useState({
         productName: "",
         productDescription: "",
@@ -19,6 +20,15 @@ export default function AddProduct() {
         discontinued: false,
     });
 
+    useEffect(() => {
+        if (id) {
+            fetch(`http://localhost:8080/products/${id}`)
+                .then((res) => res.json())
+                .then((data) => setProduct(data))
+                .catch((err) => console.error("Lỗi khi lấy sản phẩm:", err));
+        }
+    }, [id]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type } = e.target;
         setProduct({
@@ -30,20 +40,20 @@ export default function AddProduct() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await fetch("http://localhost:8080/products/add", {
-                method: "POST",
+            await fetch(`http://localhost:8080/products/update/${id}`, {
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(product),
             });
             router.push("/admin/product");
         } catch (error) {
-            console.error("Lỗi khi thêm sản phẩm:", error);
+            console.error("Lỗi khi cập nhật sản phẩm:", error);
         }
     };
 
     return (
         <main className="p-4">
-            <h2 className="text-xl font-semibold">Thêm sản phẩm</h2>
+            <h2 className="text-xl font-semibold">Chỉnh sửa sản phẩm</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <Input name="productName" placeholder="Tên sản phẩm" value={product.productName} onChange={handleChange} />
                 <Input name="productDescription" placeholder="Mô tả" value={product.productDescription} onChange={handleChange} />
@@ -62,7 +72,7 @@ export default function AddProduct() {
                         onChange={(e) => setProduct({ ...product, discontinued: e.target.checked })} 
                     />
                 </div>
-                <Button type="submit">Thêm</Button>
+                <Button type="submit">Cập nhật</Button>
             </form>
         </main>
     );

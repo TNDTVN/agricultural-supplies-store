@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 export default function ProductIndex() {
     const [products, setProducts] = useState<Product[]>([]);
     const router = useRouter();
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         fetchProducts();
@@ -16,7 +17,7 @@ export default function ProductIndex() {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch("http://localhost:8080/api/products");
+            const response = await fetch("http://localhost:8080/products");
             const data = await response.json();
             setProducts(data);
         } catch (error) {
@@ -24,9 +25,24 @@ export default function ProductIndex() {
         }
     };
 
-    const deleteProduct = async (id: number) => {
+    const handleSearch = async () => {
+        if (!searchTerm.trim()) {
+            fetchProducts();
+            return;
+        }
         try {
-            await fetch(`http://localhost:8080/api/products/${id}`, { method: "DELETE" });
+            const response = await fetch(`http://localhost:8080/products/search?keyword=${encodeURIComponent(searchTerm)}`);
+            const data = await response.json();
+            setProducts(data);
+        } catch (error) {
+            console.error("Error searching products:", error);
+        }
+    };
+
+    const deleteProduct = async (id: number) => {
+        if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+        try {
+            await fetch(`http://localhost:8080/products/delete/${id}`, { method: "DELETE" });
             fetchProducts();
         } catch (error) {
             console.error("Error deleting product:", error);
@@ -37,8 +53,13 @@ export default function ProductIndex() {
         <main className="p-4">
             <div className="mb-4 flex justify-between">
                 <div className="w-1/2 flex items-center space-x-2">
-                    <Input placeholder="Tìm kiếm sản phẩm..." className="flex-1" />
-                    <Button>Tìm</Button>
+                    <Input
+                        placeholder="Tìm kiếm sản phẩm..."
+                        className="flex-1"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Button onClick={handleSearch}>Tìm</Button>
                 </div>
                 <Button onClick={() => router.push("/admin/product/add")}>Thêm sản phẩm</Button>
             </div>
@@ -56,14 +77,14 @@ export default function ProductIndex() {
                     </TableHeader>
                     <TableBody>
                         {products.map((product) => (
-                            <TableRow key={product.id}>
-                                <TableCell>{product.id}</TableCell>
-                                <TableCell>{product.name}</TableCell>
-                                <TableCell>{product.price.toLocaleString()} VND</TableCell>
-                                <TableCell>{product.description}</TableCell>
+                            <TableRow key={product.productID}>
+                                <TableCell>{product.productID}</TableCell>
+                                <TableCell>{product.productName}</TableCell>
+                                <TableCell>{new Intl.NumberFormat("vi-VN").format(product.unitPrice)} VND</TableCell>
+                                <TableCell>{product.productDescription || "Không có mô tả"}</TableCell>
                                 <TableCell>
-                                    <Button onClick={() => router.push(`/admin/product/edit/${product.id}`)}>Sửa</Button>
-                                    <Button onClick={() => deleteProduct(product.id)} className="ml-2 bg-red-600">Xóa</Button>
+                                    <Button onClick={() => router.push(`/admin/product/update/${product.productID}`)}>Sửa</Button>
+                                    <Button onClick={() => deleteProduct(product.productID)} className="ml-2 bg-red-600">Xóa</Button>
                                 </TableCell>
                             </TableRow>
                         ))}
