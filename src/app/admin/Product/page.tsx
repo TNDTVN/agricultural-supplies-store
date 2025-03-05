@@ -42,13 +42,17 @@ export default function ProductIndex() {
     const deleteProduct = async (id: number) => {
         if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
         try {
-            await fetch(`http://localhost:8080/products/delete/${id}`, { method: "DELETE" });
-            fetchProducts();
+            const response = await fetch(`http://localhost:8080/products/delete/${id}`, { method: "DELETE" });
+            if (!response.ok) {
+                throw new Error("Failed to delete product");
+            }
+            fetchProducts(); // Cập nhật danh sách sản phẩm sau khi xóa thành công
+            alert("Xóa sản phẩm thành công!");
         } catch (error) {
             console.error("Error deleting product:", error);
+            alert("Có lỗi xảy ra khi xóa sản phẩm!");
         }
     };
-
     return (
         <main className="p-4">
             <div className="mb-4 flex justify-between">

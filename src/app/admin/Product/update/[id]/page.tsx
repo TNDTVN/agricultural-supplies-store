@@ -2,13 +2,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function EditProduct() {
     const router = useRouter();
     const { id } = useParams();
+
+    const [categories, setCategories] = useState<{ categoryID: number; categoryName: string }[]>([]);
+    const [suppliers, setSuppliers] = useState<{ supplierID: number; supplierName: string }[]>([]);
+    const [selectedImage, setSelectedImage] = useState<File[]>([]); // Updated to File[]
     const [product, setProduct] = useState({
+        productID: 0,
         productName: "",
         productDescription: "",
         unitPrice: 0,
@@ -18,18 +25,49 @@ export default function EditProduct() {
         unitsInStock: 0,
         unitsOnOrder: 0,
         discontinued: false,
+        imageUrl: "",
     });
+    const [previewImages, setPreviewImages] = useState<string[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch("http://localhost:8080/categories");
+                const data = await res.json();
+                setCategories(data);
+            } catch (error) {
+                console.error("Lỗi khi tải danh mục:", error);
+            }
+        };
+
+        const fetchSuppliers = async () => {
+            try {
+                const res = await fetch("http://localhost:8080/suppliers");
+                const data = await res.json();
+                setSuppliers(data);
+            } catch (error) {
+                console.error("Lỗi khi tải nhà cung cấp:", error);
+            }
+        };
+
+        fetchCategories();
+        fetchSuppliers();
         if (id) {
             fetch(`http://localhost:8080/products/${id}`)
                 .then((res) => res.json())
-                .then((data) => setProduct(data))
+                .then((data) => {
+                    setProduct(data);
+                    if (data.images && data.images.length > 0) {
+                        setPreviewImages(data.images.map((img: { imageName: string }) => `http://localhost:8080/images/${img.imageName}`));
+                    }
+                })
                 .catch((err) => console.error("Lỗi khi lấy sản phẩm:", err));
         }
     }, [id]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         setProduct({
             ...product,
@@ -37,42 +75,171 @@ export default function EditProduct() {
         });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            await fetch(`http://localhost:8080/products/update/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(product),
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const validFiles = Array.from(files).filter((file) => {
+                if (!file.type.startsWith("image/")) {
+                    alert("Vui lòng chọn file ảnh hợp lệ (JPEG, PNG, etc.).");
+                    return false;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    alert("Kích thước file ảnh không được vượt quá 5MB.");
+                    return false;
+                }
+                return true;
             });
-            router.push("/admin/product");
-        } catch (error) {
-            console.error("Lỗi khi cập nhật sản phẩm:", error);
+
+            setSelectedImage(validFiles); // Set array of files
+            setPreviewImages(validFiles.map((file) => URL.createObjectURL(file)));
         }
     };
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError(null);
 
+        try {
+            let imageNames = product.imageUrl ? [product.imageUrl] : [];
+
+            if (selectedImage.length > 0) {
+                const formData = new FormData();
+                selectedImage.forEach((file) => formData.append("files", file));
+                const uploadRes = await fetch("http://localhost:8080/images/upload-multiple", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!uploadRes.ok) {
+                    const errorText = await uploadRes.text();
+                    throw new Error(`Upload failed: ${errorText}`);
+                }
+
+                imageNames = await uploadRes.json();
+            }
+
+            const productData = {
+                productName: product.productName,
+                productDescription: product.productDescription,
+                unitPrice: product.unitPrice,
+                categoryID: product.categoryID,
+                supplierID: product.supplierID,
+                quantityPerUnit: product.quantityPerUnit,
+                unitsInStock: product.unitsInStock,
+                unitsOnOrder: product.unitsOnOrder,
+                discontinued: product.discontinued,
+                imageNames: imageNames // Gửi toàn bộ danh sách ảnh
+            };
+
+            console.log("Data sent to backend:", JSON.stringify(productData, null, 2));
+
+            const updateRes = await fetch(`http://localhost:8080/products/update/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(productData),
+            });
+
+            if (!updateRes.ok) {
+                const errorText = await updateRes.text();
+                console.error("Update response:", errorText);
+                throw new Error(`Update failed: ${errorText}`);
+            }
+
+            router.push("/admin/product");
+        } catch (error: any) {
+            console.error("Error:", error);
+            setError(error.message || "Có lỗi xảy ra khi cập nhật sản phẩm. Vui lòng thử lại.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
     return (
         <main className="p-4">
+            {error && <div className="text-red-500">{error}</div>}
             <h2 className="text-xl font-semibold">Chỉnh sửa sản phẩm</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <Input name="productName" placeholder="Tên sản phẩm" value={product.productName} onChange={handleChange} />
-                <Input name="productDescription" placeholder="Mô tả" value={product.productDescription} onChange={handleChange} />
-                <Input name="unitPrice" type="number" placeholder="Giá" value={product.unitPrice} onChange={handleChange} />
-                <Input name="categoryID" type="number" placeholder="ID Danh mục" value={product.categoryID} onChange={handleChange} />
-                <Input name="supplierID" type="number" placeholder="ID Nhà cung cấp" value={product.supplierID} onChange={handleChange} />
-                <Input name="quantityPerUnit" placeholder="Số lượng mỗi đơn vị" value={product.quantityPerUnit} onChange={handleChange} />
-                <Input name="unitsInStock" type="number" placeholder="Số lượng tồn kho" value={product.unitsInStock} onChange={handleChange} />
-                <Input name="unitsOnOrder" type="number" placeholder="Số lượng đặt hàng" value={product.unitsOnOrder} onChange={handleChange} />
+                <div>
+                    <label className="block font-medium">Tên sản phẩm:</label>
+                    <Input name="productName" value={product.productName} onChange={handleChange} />
+                </div>
+
+                <div>
+                    <label className="block font-medium">Mô tả:</label>
+                    <Input name="productDescription" value={product.productDescription} onChange={handleChange} />
+                </div>
+
+                <div>
+                    <label className="block font-medium">Giá:</label>
+                    <Input name="unitPrice" type="number" value={product.unitPrice} onChange={handleChange} />
+                </div>
+
+                <div>
+                    <label className="block font-medium">Danh mục:</label>
+                    <select name="categoryID" value={product.categoryID} onChange={handleChange} className="p-2 border rounded w-full">
+                        <option value="0">Chọn danh mục</option>
+                        {categories.map((category) => (
+                            <option key={category.categoryID} value={category.categoryID}>
+                                {category.categoryName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block font-medium">Nhà cung cấp:</label>
+                    <select name="supplierID" value={product.supplierID} onChange={handleChange} className="p-2 border rounded w-full">
+                        <option value="0">Chọn nhà cung cấp</option>
+                        {suppliers.map((supplier) => (
+                            <option key={supplier.supplierID} value={supplier.supplierID}>
+                                {supplier.supplierName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block font-medium">Số lượng mỗi đơn vị:</label>
+                    <Input name="quantityPerUnit" value={product.quantityPerUnit} onChange={handleChange} />
+                </div>
+
+                <div>
+                    <label className="block font-medium">Số lượng tồn kho:</label>
+                    <Input name="unitsInStock" type="number" value={product.unitsInStock} onChange={handleChange} />
+                </div>
+
+                <div>
+                    <label className="block font-medium">Số lượng đặt hàng:</label>
+                    <Input name="unitsOnOrder" type="number" value={product.unitsOnOrder} onChange={handleChange} />
+                </div>
+
                 <div className="flex items-center space-x-2">
                     <label className="text-sm">Ngừng kinh doanh:</label>
                     <input
                         type="checkbox"
                         name="discontinued"
                         checked={product.discontinued}
-                        onChange={(e) => setProduct({ ...product, discontinued: e.target.checked })} 
+                        onChange={(e) => setProduct({ ...product, discontinued: e.target.checked })}
                     />
                 </div>
-                <Button type="submit">Cập nhật</Button>
+
+                <div>
+                    <label className="block font-medium">Ảnh sản phẩm:</label>
+                    <div className="flex gap-2 mt-2">
+                        {previewImages.map((imgSrc, index) => (
+                            <Image key={index} src={imgSrc} alt={`Ảnh ${index + 1}`} width={64} height={64} className="w-32 h-32 object-cover rounded" />
+                        ))}
+                    </div>
+                    <Input type="file" accept="image/*" multiple onChange={handleImageChange} className="mt-2" />
+                </div>
+
+                <div className="flex space-x-2">
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? "Đang xử lý..." : "Cập nhật"}
+                    </Button>
+                    <Link href={"/admin/product"} className="px-4 py-2 border rounded bg-gray-200 hover:bg-gray-300">
+                        Trở về
+                    </Link>
+                </div>
             </form>
         </main>
     );

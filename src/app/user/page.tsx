@@ -45,8 +45,8 @@ export default function Home() {
       <div className="mb-8 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 w-full px-8 md:px-16 lg:px-32 gap-6">
         {products.map((product) => {
           const imageUrl = product.images && product.images.length > 0
-                            ? `/images/${product.images[0].imageName}`
-                            : "/images/no-image.jpg";
+                  ? `http://localhost:8080/images/${product.images[0].imageName}`
+                  : "/images/no-image.jpg";
           return (
             <Card
               key={product.productID}
