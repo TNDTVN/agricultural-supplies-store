@@ -1,13 +1,21 @@
+// Trong file AccountIndex.jsx
 "use client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { Account } from "@/types/account";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function AccountIndex() {
     const [accounts, setAccounts] = useState<Account[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const router = useRouter();
 
     useEffect(() => {
@@ -16,7 +24,8 @@ export default function AccountIndex() {
 
     const fetchAccounts = async () => {
         try {
-            const response = await fetch("http://localhost:8080/api/accounts");
+            const response = await fetch("http://localhost:8080/accounts");
+            if (!response.ok) throw new Error("Không thể lấy danh sách tài khoản");
             const data = await response.json();
             setAccounts(data);
         } catch (error) {
@@ -24,24 +33,59 @@ export default function AccountIndex() {
         }
     };
 
-    const deleteAccount = async (id: number) => {
+    const handleSearch = async () => {
+        if (!searchTerm.trim()) {
+            fetchAccounts();
+            return;
+        }
         try {
-            await fetch(`http://localhost:8080/api/accounts/${id}`, { method: "DELETE" });
+            const response = await fetch(
+                `http://localhost:8080/accounts/search?username=${encodeURIComponent(searchTerm)}`
+            );
+            if (!response.ok) throw new Error("Không thể tìm kiếm tài khoản");
+            const data = await response.json();
+            setAccounts(data);
+        } catch (error) {
+            console.error("Error searching accounts:", error);
+        }
+    };
+
+    const lockAccount = async (id: number) => {
+        if (!confirm("Bạn có chắc chắn muốn khóa tài khoản này?")) return;
+        try {
+            const response = await fetch(`http://localhost:8080/accounts/${id}/lock`, {
+                method: "PUT",
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Không thể khóa tài khoản");
+            }
             fetchAccounts();
         } catch (error) {
-            console.error("Error deleting account:", error);
+            console.error("Error locking account:", error);
+            alert(error);
+        }
+    };
+
+    const unlockAccount = async (id: number) => {
+        if (!confirm("Bạn có chắc chắn muốn mở khóa tài khoản này?")) return;
+        try {
+            const response = await fetch(`http://localhost:8080/accounts/${id}/unlock`, {
+                method: "PUT",
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Không thể mở khóa tài khoản");
+            }
+            fetchAccounts();
+        } catch (error) {
+            console.error("Error unlocking account:", error);
+            alert(error);
         }
     };
 
     return (
         <main className="p-4">
-            <div className="mb-4 flex justify-between">
-                <div className="w-1/2 flex items-center space-x-2">
-                    <Input placeholder="Tìm kiếm tài khoản..." className="flex-1" />
-                    <Button>Tìm</Button>
-                </div>
-                <Button onClick={() => router.push("/admin/account/add")}>Thêm tài khoản</Button>
-            </div>
             <div className="mt-6">
                 <h2 className="mb-2 text-xl font-semibold">Danh sách tài khoản</h2>
                 <Table>
@@ -51,6 +95,7 @@ export default function AccountIndex() {
                             <TableHead>Tên đăng nhập</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Vai trò</TableHead>
+                            <TableHead>Trạng thái</TableHead>
                             <TableHead>Hành động</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -62,8 +107,32 @@ export default function AccountIndex() {
                                 <TableCell>{account.email}</TableCell>
                                 <TableCell>{account.role}</TableCell>
                                 <TableCell>
-                                    <Button onClick={() => router.push(`/admin/account/edit/${account.accountID}`)}>Sửa</Button>
-                                    <Button onClick={() => deleteAccount(account.accountID)} className="ml-2 bg-red-600">Xóa</Button>
+                                    {account.locked ? "Đã khóa" : "Hoạt động"}
+                                </TableCell>
+                                <TableCell>
+                                    <Button
+                                        onClick={() =>
+                                            router.push(`/admin/account/edit/${account.accountID}`)
+                                        }
+                                    >
+                                        Sửa
+                                    </Button>
+                                    {!account.locked && account.role !== "ADMIN" && (
+                                        <Button
+                                            onClick={() => lockAccount(account.accountID)}
+                                            className="ml-2 bg-orange-600"
+                                        >
+                                            Khóa
+                                        </Button>
+                                    )}
+                                    {account.locked && (
+                                        <Button
+                                            onClick={() => unlockAccount(account.accountID)}
+                                            className="ml-2 bg-green-600"
+                                        >
+                                            Mở khóa
+                                        </Button>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}

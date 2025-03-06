@@ -1,5 +1,4 @@
-import { Home, Inbox, Search, Settings, User2Icon } from "lucide-react"
-
+"use client";
 import {
   Sidebar,
   SidebarContent,
@@ -9,37 +8,57 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { Home, Inbox, Search, Settings, User2Icon } from "lucide-react";
+import { useEffect, useState } from "react";
 
-const items = [
+const allItems = [
   {
     title: "Home",
     url: "#",
     icon: Home,
+    roles: ["ADMIN", "EMPLOYEE"],
   },
   {
     title: "Inbox",
     url: "#",
     icon: Inbox,
+    roles: ["ADMIN", "EMPLOYEE"],
   },
   {
     title: "Account",
     url: "/admin/account",
     icon: User2Icon,
+    roles: ["ADMIN"],
   },
   {
     title: "Product",
     url: "/admin/product",
     icon: Search,
+    roles: ["ADMIN", "EMPLOYEE"],
   },
   {
     title: "Settings",
     url: "#",
     icon: Settings,
+    roles: ["ADMIN", "EMPLOYEE"],
   },
-]
+];
 
 export function AppSidebar() {
+  const [role, setRole] = useState<string | null>(null);
+
+  // Lấy role từ sessionStorage khi component mount
+  useEffect(() => {
+    const userRole = sessionStorage.getItem("role");
+    setRole(userRole);
+  }, []);
+
+  // Lọc các mục sidebar dựa trên role
+  const items = allItems.filter((item) =>
+    item.roles.includes(role || "")
+  );
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -62,5 +81,5 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

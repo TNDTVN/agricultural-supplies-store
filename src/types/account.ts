@@ -1,3 +1,4 @@
+// Trong file types/account.ts hoặc nơi bạn định nghĩa interface
 export interface Account {
     accountID: number;
     username: string;
@@ -7,4 +8,5 @@ export interface Account {
     createdDate: string;
     role: string;
     tokenCode?: string;
+    locked?: boolean; // Thay isLocked thành locked
 }

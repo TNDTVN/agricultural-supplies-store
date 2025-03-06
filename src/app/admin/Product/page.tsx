@@ -84,7 +84,7 @@ export default function ProductIndex() {
                             <TableRow key={product.productID}>
                                 <TableCell>{product.productID}</TableCell>
                                 <TableCell>{product.productName}</TableCell>
-                                <TableCell>{new Intl.NumberFormat("vi-VN").format(product.unitPrice)} VND</TableCell>
+                                <TableCell>{product.unitPrice.toLocaleString()} VND</TableCell>
                                 <TableCell>{product.productDescription || "Không có mô tả"}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => router.push(`/admin/product/update/${product.productID}`)}>Sửa</Button>
