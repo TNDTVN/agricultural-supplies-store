@@ -196,7 +196,10 @@ export default function AddProduct() {
                     <Button type="submit" disabled={isLoading}>
                         {isLoading ? "Đang xử lý..." : "Thêm"}
                     </Button>
-                    <Link href={"/admin/product"} className="px-4 py-2 border rounded bg-gray-200 hover:bg-gray-300">
+                    <Link
+                        href={"/admin/product"}
+                        className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-black bg-gray-200 border rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                    >
                         Trở về
                     </Link>
                 </div>

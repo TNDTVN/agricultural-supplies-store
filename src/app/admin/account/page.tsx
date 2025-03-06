@@ -1,6 +1,8 @@
 // Trong file AccountIndex.jsx
 "use client";
+
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Table,
     TableBody,
@@ -86,6 +88,20 @@ export default function AccountIndex() {
 
     return (
         <main className="p-4">
+            <div className="mb-4 flex justify-between">
+                <div className="w-1/2 flex items-center space-x-2">
+                <Input
+                    placeholder="Tìm kiếm tài khoản..."
+                    className="flex-1"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Button onClick={handleSearch}>Tìm</Button>
+                </div>
+                <Button onClick={() => router.push("/admin/account/add")}>
+                Thêm tài khoản
+                </Button>
+            </div>
             <div className="mt-6">
                 <h2 className="mb-2 text-xl font-semibold">Danh sách tài khoản</h2>
                 <Table>
