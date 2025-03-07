@@ -2,10 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"; // Thêm useRouter
 import { useEffect, useState } from "react";
 import "./globals.css";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -15,48 +15,53 @@ export default function RootLayout({
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Trạng thái đăng nhập
-  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter(); // Khởi tạo router
 
   // Kiểm tra trạng thái đăng nhập khi component mount
   useEffect(() => {
     const role = sessionStorage.getItem("role");
     if (role) {
       setIsLoggedIn(true);
-    }
-  }, []);
-
-  // Trong file RootLayout.jsx
-  const handleLogin = async (e: React.FormEvent) => {
-      e.preventDefault();
-      try {
-          const response = await fetch("http://localhost:8080/accounts/login", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ username, password }),
-          });
-
-          if (!response.ok) {
-              const errorText = await response.text(); // Lấy thông báo lỗi từ server
-              throw new Error(errorText || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
-          }
-
-          const data = await response.json();
-          const { accountID, role } = data;
-
-          sessionStorage.setItem("accountID", accountID);
-          sessionStorage.setItem("role", role);
-          setIsLoggedIn(true);
-
-          if (role === "ADMIN" || role === "EMPLOYEE") {
-              router.push("/admin");
-          } else if (role === "CUSTOMER") {
-              alert("Đăng nhập thành công!");
-              setIsLoginModalOpen(false);
-          }
-      } catch (err: any) {
-          setError(err.message); // Hiển thị thông báo lỗi cụ thể từ server
+      // Nếu đã đăng nhập và là ADMIN/EMPLOYEE, chuyển hướng ngay lập tức
+      if (role === "ADMIN" || role === "EMPLOYEE") {
+        router.push("/admin");
       }
+    }
+  }, [router]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:8080/accounts/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+      }
+
+      const data = await response.json();
+      const { accountID, role } = data;
+
+      sessionStorage.setItem("accountID", accountID);
+      sessionStorage.setItem("role", role);
+      setIsLoggedIn(true);
+      alert("Đăng nhập thành công!");
+      setIsLoginModalOpen(false);
+
+      // Chuyển hướng nếu là ADMIN hoặc EMPLOYEE
+      if (role === "ADMIN" || role === "EMPLOYEE") {
+        router.push("/admin");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   const handleLogout = () => {
@@ -64,15 +69,21 @@ export default function RootLayout({
     sessionStorage.removeItem("role");
     setIsLoggedIn(false);
     alert("Đăng xuất thành công!");
-    router.push("/user");
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      alert(`Tìm kiếm: ${searchQuery}`);
+    }
   };
 
   return (
     <html lang="vi">
-      <body className="flex top-0 flex-col min-h-screen bg-white">
-        <nav className="top-0 w-full flex items-center justify-between bg-green-700 p-4 text-white z-10">
-          <div className="flex items-center gap-3">
-            <Link href="/user" className="flex items-center gap-2">
+      <body className="flex flex-col min-h-screen bg-white">
+        <nav className="w-full flex items-center justify-between bg-green-700 p-4 text-white z-10">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
               <div className="relative w-16 h-16 ml-1 mr-1">
                 <Image
                   src="/images/trans_bg.png"
@@ -83,25 +94,80 @@ export default function RootLayout({
                 />
               </div>
               <h1 className="text-2xl font-bold">FarmTech</h1>
-            </Link>
+            </div>
+            <button className="hover:underline">Trang chủ</button>
+            <button className="hover:underline">Cửa hàng</button>
+            <button className="hover:underline">Giỏ hàng</button>
+            {isLoggedIn && (
+              <>
+                <button className="hover:underline">Lịch sử mua hàng</button>
+                <button className="hover:underline">Sản phẩm đã mua</button>
+              </>
+            )}
           </div>
-          {isLoggedIn ? (
-            <Button
-              variant="outline"
-              className="border-white text-black hover:bg-white hover:text-green-700"
-              onClick={handleLogout}
-            >
-              Đăng xuất
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              className="border-white text-black hover:bg-white hover:text-green-700"
-              onClick={() => setIsLoginModalOpen(true)}
-            >
-              Đăng nhập
-            </Button>
-          )}
+
+          <div className="flex items-center gap-4">
+            <form onSubmit={handleSearch} className="flex items-center">
+              <Input
+                placeholder="Tìm kiếm sản phẩm..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="text-black w-64 bg-white"
+              />
+              <Button type="submit" className="ml-2 bg-white text-green-700 hover:bg-gray-200">
+                Tìm
+              </Button>
+            </form>
+
+            <div className="relative">
+              <Button
+                variant="outline"
+                className="border-white text-black hover:bg-white hover:text-green-700"
+                onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
+              >
+                Tài khoản
+              </Button>
+
+              {isAccountMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-20">
+                  {isLoggedIn ? (
+                    <>
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                        Profile
+                      </button>
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                        Đổi mật khẩu
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Đăng xuất
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setIsLoginModalOpen(true);
+                          setIsAccountMenuOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Đăng nhập
+                      </button>
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                        Đăng ký
+                      </button>
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                        Quên mật khẩu
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </nav>
 
         {/* Modal Đăng Nhập */}
