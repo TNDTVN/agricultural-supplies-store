@@ -122,14 +122,15 @@ export function AppSidebar() {
                     <a
                       href={item.url}
                       onClick={(e) => handleUserAccountClick(e, item)}
-                      className="flex items-center justify-between w-full p-2 text-black hover:bg-green-600 hover:text-white">
+                      className="flex items-center justify-between w-full p-2 text-black"
+                    >
                       <span className="flex items-center">
-                        <item.icon className="mr-2" />
+                        <item.icon className="mr-2 h-5 w-5" />
                         <span>{item.title}</span>
                       </span>
                       {item.subItems && (
                         <ChevronDown
-                          className={`transition-transform ${
+                          className={`h-4 w-4 transition-transform duration-200 ${
                             item.title === "User Account" && isUserAccountOpen ? "rotate-180" : ""
                           }`}
                         />
@@ -143,9 +144,9 @@ export function AppSidebar() {
                           <SidebarMenuButton asChild>
                             <a
                               href={subItem.url}
-                              className="flex items-center p-2 text-black hover:bg-green-600 hover:text-white"
+                              className="flex items-center p-2 text-black"
                             >
-                              <subItem.icon className="mr-2" />
+                              <subItem.icon className="mr-2 h-5 w-5" />
                               <span>{subItem.title}</span>
                             </a>
                           </SidebarMenuButton>
