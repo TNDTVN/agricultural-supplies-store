@@ -9,27 +9,24 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import "./globals.css";
 
-
 export default function AdminLayout({
     children,
-    }: {
+}: {
     children: React.ReactNode;
-    }) {
+}) {
     const router = useRouter();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    // Kiểm tra trạng thái đăng nhập khi component mount
     useEffect(() => {
         const role = sessionStorage.getItem("role");
         if (role === "ADMIN" || role === "EMPLOYEE") {
         setIsLoggedIn(true);
         } else {
-        router.push("/user"); // Nếu không phải ADMIN hoặc EMPLOYEE, chuyển về trang user
+        router.push("/user");
         }
     }, [router]);
 
     const handleLogout = () => {
-        // Xóa thông tin trong sessionStorage
         sessionStorage.removeItem("accountID");
         sessionStorage.removeItem("role");
         setIsLoggedIn(false);
@@ -39,11 +36,11 @@ export default function AdminLayout({
 
     return (
         <html>
-        <body className="flex top-0 flex-col min-h-screen bg-gray-100">
+        <body className="flex flex-col min-h-screen bg-gray-100">
             <SidebarProvider>
             <AppSidebar />
-            <div className="flex-row w-full">
-                <nav className="top-0 w-full flex items-center justify-between bg-green-700 p-4 text-white z-10">
+            <div className="flex flex-col flex-1 w-full">
+                <nav className="w-full flex items-center justify-between bg-green-700 p-4 text-white z-10">
                 <div className="flex items-center gap-3">
                     <CustomSidebarTrigger />
                     <Link href="/admin" className="flex items-center gap-2">
@@ -69,8 +66,8 @@ export default function AdminLayout({
                     </Button>
                 )}
                 </nav>
-                <main>{children}</main>
-                <footer className="bottom-0 w-full bg-green-700 p-4 text-center text-white">
+                <main className="flex-1">{children}</main>
+                <footer className="w-full bg-green-700 p-4 text-center text-white">
                 © 2025 Cửa Hàng Vật Tư Nông Nghiệp
                 </footer>
             </div>
