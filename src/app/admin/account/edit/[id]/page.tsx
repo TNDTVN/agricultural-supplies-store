@@ -114,7 +114,9 @@ export default function EditAccount() {
                 throw new Error(await response.text());
             }
 
+            alert("Cập nhật tài khoản thành công!");
             router.push("/admin/account");
+            router.refresh();
         } catch (error) {
             console.error("Error updating account:", error);
             alert((error as Error).message);
@@ -215,7 +217,7 @@ export default function EditAccount() {
                 </div>
 
                 <div className="flex space-x-2">
-                    <Button type="submit">Thêm</Button>
+                    <Button type="submit">Cập Nhật</Button>
                     <Link
                         href={"/admin/account"}
                         className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-black bg-gray-200 border rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"

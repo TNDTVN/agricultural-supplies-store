@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // Thêm useRouter
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import "./globals.css";
 
@@ -12,25 +12,47 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [oldPassword, setOldPassword] = useState(""); // Thêm state cho mật khẩu cũ
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter(); // Khởi tạo router
+  const router = useRouter();
 
   // Kiểm tra trạng thái đăng nhập khi component mount
   useEffect(() => {
     const role = sessionStorage.getItem("role");
     if (role) {
       setIsLoggedIn(true);
-      // Nếu đã đăng nhập và là ADMIN/EMPLOYEE, chuyển hướng ngay lập tức
       if (role === "ADMIN" || role === "EMPLOYEE") {
         router.push("/admin");
       }
     }
   }, [router]);
+
+  // Hàm xóa lỗi và reset các field khi chuyển modal
+  const resetFormAndError = () => {
+    setError("");
+    setUsername("");
+    setPassword("");
+    setFullName("");
+    setPhone("");
+    setEmail("");
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,11 +76,83 @@ export default function RootLayout({
       setIsLoggedIn(true);
       alert("Đăng nhập thành công!");
       setIsLoginModalOpen(false);
+      resetFormAndError(); // Xóa lỗi sau khi đăng nhập thành công
 
-      // Chuyển hướng nếu là ADMIN hoặc EMPLOYEE
       if (role === "ADMIN" || role === "EMPLOYEE") {
         router.push("/admin");
       }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:8080/accounts/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, fullName, phone, email }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
+      }
+
+      alert("Đăng ký thành công! Vui lòng đăng nhập.");
+      setIsRegisterModalOpen(false);
+      setIsLoginModalOpen(true);
+      resetFormAndError(); // Xóa lỗi sau khi đăng ký thành công
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:8080/accounts/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, phone }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Không tìm thấy tài khoản hoặc thông tin không khớp.");
+      }
+
+      alert("Mật khẩu mới đã được gửi qua email/số điện thoại!");
+      setIsForgotPasswordModalOpen(false);
+      setIsLoginModalOpen(true);
+      resetFormAndError();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setError("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+      return;
+    }
+    try {
+      const accountID = sessionStorage.getItem("accountID");
+      const response = await fetch("http://localhost:8080/accounts/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountID, oldPassword, newPassword }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Đổi mật khẩu thất bại!");
+      }
+
+      alert("Đổi mật khẩu thành công!");
+      setIsChangePasswordModalOpen(false);
+      resetFormAndError();
     } catch (err: any) {
       setError(err.message);
     }
@@ -69,6 +163,7 @@ export default function RootLayout({
     sessionStorage.removeItem("role");
     setIsLoggedIn(false);
     alert("Đăng xuất thành công!");
+    resetFormAndError(); // Xóa lỗi khi đăng xuất
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -135,7 +230,14 @@ export default function RootLayout({
                       <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
                         Profile
                       </button>
-                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                      <button
+                        onClick={() => {
+                          setIsChangePasswordModalOpen(true);
+                          setIsAccountMenuOpen(false);
+                          resetFormAndError(); // Xóa lỗi khi mở modal đổi mật khẩu
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
                         Đổi mật khẩu
                       </button>
                       <button
@@ -151,15 +253,30 @@ export default function RootLayout({
                         onClick={() => {
                           setIsLoginModalOpen(true);
                           setIsAccountMenuOpen(false);
+                          resetFormAndError(); // Xóa lỗi khi mở modal đăng nhập
                         }}
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                       >
                         Đăng nhập
                       </button>
-                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                      <button
+                        onClick={() => {
+                          setIsRegisterModalOpen(true);
+                          setIsAccountMenuOpen(false);
+                          resetFormAndError(); // Xóa lỗi khi mở modal đăng ký
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
                         Đăng ký
                       </button>
-                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                      <button
+                        onClick={() => {
+                          setIsForgotPasswordModalOpen(true);
+                          setIsAccountMenuOpen(false);
+                          resetFormAndError(); // Xóa lỗi khi mở modal quên mật khẩu
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
                         Quên mật khẩu
                       </button>
                     </>
@@ -192,15 +309,160 @@ export default function RootLayout({
                   />
                 </div>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
+                <div className="flex justify-between mb-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLoginModalOpen(false);
+                      setIsForgotPasswordModalOpen(true);
+                      resetFormAndError(); // Xóa lỗi khi chuyển sang quên mật khẩu
+                    }}
+                    className="text-blue-500 hover:underline"
+                  >
+                    Quên mật khẩu?
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLoginModalOpen(false);
+                      setIsRegisterModalOpen(true);
+                      resetFormAndError(); // Xóa lỗi khi chuyển sang đăng ký
+                    }}
+                    className="text-blue-500 hover:underline"
+                  >
+                    Đăng ký
+                  </button>
+                </div>
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsLoginModalOpen(false)}
+                    onClick={() => {
+                      setIsLoginModalOpen(false);
+                      resetFormAndError(); // Xóa lỗi khi hủy
+                    }}
                   >
                     Hủy
                   </Button>
                   <Button type="submit">Đăng nhập</Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Đăng Ký */}
+        {isRegisterModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h2 className="text-xl font-bold mb-4">Đăng Ký</h2>
+              <form onSubmit={handleRegister}>
+                <div className="mb-4">
+                  <Input
+                    placeholder="Tên đăng nhập"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </div>
+                <div className="mb-4">
+                  <Input
+                    type="password"
+                    placeholder="Mật khẩu"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="mb-4">
+                  <Input
+                    placeholder="Họ tên"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
+                </div>
+                <div className="mb-4">
+                  <Input
+                    placeholder="Số điện thoại"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+                <div className="mb-4">
+                  <Input
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                {error && <p className="text-red-500 mb-4">{error}</p>}
+                <div className="flex justify-between mb-4">
+                  <button type="button" onClick={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); resetFormAndError();  }} className="text-blue-500 hover:underline" >
+                    Đã có tài khoản? Đăng nhập
+                  </button>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => { setIsRegisterModalOpen(false); resetFormAndError();  }} >
+                    Hủy
+                  </Button>
+                  <Button type="submit">Đăng ký</Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Quên Mật Khẩu */}
+        {isForgotPasswordModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h2 className="text-xl font-bold mb-4">Quên Mật Khẩu</h2>
+              <form onSubmit={handleForgotPassword}>
+                <div className="mb-4">
+                  <Input placeholder="Tên đăng nhập" value={username} onChange={(e) => setUsername(e.target.value)} />
+                </div>
+                <div className="mb-4">
+                  <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                <div className="mb-4">
+                  <Input placeholder="Số điện thoại" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+                {error && <p className="text-red-500 mb-4">{error}</p>}
+                <div className="flex justify-between mb-4">
+                  <button type="button" onClick={() => { setIsForgotPasswordModalOpen(false); setIsLoginModalOpen(true); resetFormAndError(); }} className="text-blue-500 hover:underline" >
+                    Quay lại đăng nhập
+                  </button>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => { setIsForgotPasswordModalOpen(false); resetFormAndError();  }} >
+                    Hủy
+                  </Button>
+                  <Button type="submit">Gửi yêu cầu</Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Đổi Mật Khẩu */}
+        {isChangePasswordModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h2 className="text-xl font-bold mb-4">Đổi Mật Khẩu</h2>
+              <form onSubmit={handleChangePassword}>
+                <div className="mb-4">
+                  <Input type="password" placeholder="Mật khẩu cũ" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} />
+                </div>
+                <div className="mb-4">
+                  <Input type="password" placeholder="Mật khẩu mới" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                </div>
+                <div className="mb-4">
+                  <Input type="password" placeholder="Xác nhận mật khẩu mới" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                </div>
+                {error && <p className="text-red-500 mb-4">{error}</p>}
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => {setIsChangePasswordModalOpen(false);resetFormAndError();}}>
+                    Hủy
+                  </Button>
+                  <Button type="submit">Xác nhận</Button>
                 </div>
               </form>
             </div>
