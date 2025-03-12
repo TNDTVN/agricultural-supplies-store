@@ -10,7 +10,7 @@ export default function ProductIndex() {
     const [products, setProducts] = useState<Product[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [pageSize] = useState(10); // Số sản phẩm mỗi trang
+    const [pageSize] = useState(7); // Số sản phẩm mỗi trang
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -22,7 +22,7 @@ export default function ProductIndex() {
         try {
             const response = await fetch(`http://localhost:8080/products?page=${page}&size=${pageSize}`);
             const data = await response.json();
-            setProducts(data.content); // Giả sử API trả về object với content và totalPages
+            setProducts(data.content);
             setTotalPages(data.totalPages);
         } catch (error) {
             console.error("Error fetching products:", error);
@@ -33,6 +33,7 @@ export default function ProductIndex() {
         try {
             if (!searchTerm.trim()) {
                 fetchProducts(1);
+                setCurrentPage(1);
                 return;
             }
             const response = await fetch(
@@ -84,29 +85,14 @@ export default function ProductIndex() {
                 <h2 className="mb-2 text-xl font-semibold">Danh sách sản phẩm</h2>
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Tên sản phẩm</TableHead>
-                            <TableHead>Giá</TableHead>
-                            <TableHead>Mô tả</TableHead>
-                            <TableHead>Hành động</TableHead>
+                        <TableRow>{/* No whitespace */}
+                            <TableHead>STT</TableHead><TableHead>ID</TableHead><TableHead>Tên sản phẩm</TableHead><TableHead>Giá</TableHead><TableHead>Mô tả</TableHead><TableHead>Hành động</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {products.map((product) => (
-                            <TableRow key={product.productID}>
-                                <TableCell>{product.productID}</TableCell>
-                                <TableCell>{product.productName}</TableCell>
-                                <TableCell>{product.unitPrice.toLocaleString()} VND</TableCell>
-                                <TableCell>{product.productDescription || "Không có mô tả"}</TableCell>
-                                <TableCell>
-                                    <Button onClick={() => router.push(`/admin/product/update/${product.productID}`)}>
-                                        Sửa
-                                    </Button>
-                                    <Button onClick={() => deleteProduct(product.productID)} className="ml-2 bg-red-600">
-                                        Xóa
-                                    </Button>
-                                </TableCell>
+                        {products.map((product, index) => (
+                            <TableRow key={product.productID}>{/* No whitespace */}
+                                <TableCell>{(currentPage - 1) * pageSize + index + 1}</TableCell><TableCell>{product.productID}</TableCell><TableCell>{product.productName}</TableCell><TableCell>{product.unitPrice.toLocaleString()} VND</TableCell><TableCell>{product.productDescription || "Không có mô tả"}</TableCell><TableCell><Button onClick={() => router.push(`/admin/product/update/${product.productID}`)}>Sửa</Button><Button onClick={() => deleteProduct(product.productID)} className="ml-2 bg-red-600">Xóa</Button></TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

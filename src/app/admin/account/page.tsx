@@ -33,8 +33,8 @@ export default function AccountIndex() {
             );
             if (!response.ok) throw new Error("Không thể lấy danh sách tài khoản");
             const data = await response.json();
-            setAccounts(data.content); // Dữ liệu nằm trong 'content'
-            setTotalPages(data.totalPages); // Tổng số trang
+            setAccounts(data.content);
+            setTotalPages(data.totalPages);
         } catch (error) {
             console.error("Error fetching accounts:", error);
         }
@@ -120,50 +120,14 @@ export default function AccountIndex() {
                 <h2 className="mb-2 text-xl font-semibold">Danh sách tài khoản</h2>
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Tên đăng nhập</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Vai trò</TableHead>
-                            <TableHead>Trạng thái</TableHead>
-                            <TableHead>Hành động</TableHead>
+                        <TableRow>{/* No whitespace between <TableRow> and children */}
+                            <TableHead>STT</TableHead><TableHead>ID</TableHead><TableHead>Tên đăng nhập</TableHead><TableHead>Email</TableHead><TableHead>Vai trò</TableHead><TableHead>Trạng thái</TableHead><TableHead>Hành động</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {accounts.map((account) => (
-                            <TableRow key={account.accountID}>
-                                <TableCell>{account.accountID}</TableCell>
-                                <TableCell>{account.username}</TableCell>
-                                <TableCell>{account.email}</TableCell>
-                                <TableCell>{account.role}</TableCell>
-                                <TableCell>
-                                    {account.locked ? "Đã khóa" : "Hoạt động"}
-                                </TableCell>
-                                <TableCell>
-                                    <Button
-                                        onClick={() =>
-                                            router.push(`/admin/account/edit/${account.accountID}`)
-                                        }
-                                    >
-                                        Sửa
-                                    </Button>
-                                    {!account.locked && account.role !== "ADMIN" && (
-                                        <Button
-                                            onClick={() => lockAccount(account.accountID)}
-                                            className="ml-2 bg-orange-600"
-                                        >
-                                            Khóa
-                                        </Button>
-                                    )}
-                                    {account.locked && (
-                                        <Button
-                                            onClick={() => unlockAccount(account.accountID)}
-                                            className="ml-2 bg-green-600"
-                                        >
-                                            Mở khóa
-                                        </Button>
-                                    )}
-                                </TableCell>
+                        {accounts.map((account, index) => (
+                            <TableRow key={account.accountID}>{/* No whitespace between <TableRow> and children */}
+                                <TableCell>{(currentPage - 1) * pageSize + index + 1}</TableCell><TableCell>{account.accountID}</TableCell><TableCell>{account.username}</TableCell><TableCell>{account.email}</TableCell><TableCell>{account.role}</TableCell><TableCell>{account.locked ? "Đã khóa" : "Hoạt động"}</TableCell><TableCell><Button onClick={() => router.push(`/admin/account/edit/${account.accountID}`)}>Sửa</Button>{!account.locked && account.role !== "ADMIN" && (<Button onClick={() => lockAccount(account.accountID)} className="ml-2 bg-orange-600">Khóa</Button>)}{account.locked && (<Button onClick={() => unlockAccount(account.accountID)} className="ml-2 bg-green-600">Mở khóa</Button>)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
