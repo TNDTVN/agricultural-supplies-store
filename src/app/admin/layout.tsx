@@ -68,7 +68,7 @@ export default function AdminLayout({
                 </nav>
                 <main className="flex-1">{children}</main>
                 <footer className="w-full bg-green-700 p-4 text-center text-white">
-                © 2025 Cửa Hàng Vật Tư Nông Nghiệp
+                &copy; 2025 Cửa Hàng Vật Tư Nông Nghiệp
                 </footer>
             </div>
             </SidebarProvider>

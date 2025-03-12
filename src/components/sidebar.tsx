@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Sidebar,
   SidebarContent,
@@ -58,7 +60,13 @@ export function AppSidebar() {
   const [isUserAccountOpen, setIsUserAccountOpen] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false); // State cho modal đổi mật khẩu
+  const [oldPassword, setOldPassword] = useState(""); // State cho mật khẩu cũ
+  const [newPassword, setNewPassword] = useState(""); // State cho mật khẩu mới
+  const [confirmPassword, setConfirmPassword] = useState(""); // State cho xác nhận mật khẩu
+  const [error, setError] = useState(""); // State cho thông báo lỗi
 
+  // Lấy thông tin tài khoản khi component mount
   useEffect(() => {
     const userRole = sessionStorage.getItem("role");
     const currentUsername = sessionStorage.getItem("username");
@@ -80,6 +88,42 @@ export function AppSidebar() {
         });
     }
   }, []);
+
+  // Hàm xóa các field và lỗi
+  const resetFormAndError = () => {
+    setError("");
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  // Xử lý đổi mật khẩu
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setError("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+      return;
+    }
+    try {
+      const accountID = sessionStorage.getItem("accountID");
+      const response = await fetch("http://localhost:8080/accounts/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountID, oldPassword, newPassword }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Đổi mật khẩu thất bại!");
+      }
+
+      alert("Đổi mật khẩu thành công!");
+      setIsChangePasswordModalOpen(false);
+      resetFormAndError();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
 
   const items = allItems.filter((item) => item.roles.includes(role || ""));
 
@@ -144,6 +188,13 @@ export function AppSidebar() {
                           <SidebarMenuButton asChild>
                             <a
                               href={subItem.url}
+                              onClick={(e) => {
+                                if (subItem.title === "Change Password") {
+                                  e.preventDefault();
+                                  setIsChangePasswordModalOpen(true);
+                                  resetFormAndError();
+                                }
+                              }}
                               className="flex items-center p-2 text-black"
                             >
                               <subItem.icon className="mr-2 h-5 w-5" />
@@ -160,6 +211,55 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Modal Đổi Mật Khẩu */}
+      {isChangePasswordModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Đổi Mật Khẩu</h2>
+            <form onSubmit={handleChangePassword}>
+              <div className="mb-4">
+                <Input
+                  type="password"
+                  placeholder="Mật khẩu cũ"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                />
+              </div>
+              <div className="mb-4">
+                <Input
+                  type="password"
+                  placeholder="Mật khẩu mới"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+              <div className="mb-4">
+                <Input
+                  type="password"
+                  placeholder="Xác nhận mật khẩu mới"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+              {error && <p className="text-red-500 mb-4">{error}</p>}
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsChangePasswordModalOpen(false);
+                    resetFormAndError();
+                  }}
+                >
+                  Hủy
+                </Button>
+                <Button type="submit">Xác nhận</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </Sidebar>
   );
 }

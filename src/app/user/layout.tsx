@@ -112,22 +112,23 @@ export default function RootLayout({
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8080/accounts/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, phone }),
-      });
+        const response = await fetch("http://localhost:8080/accounts/forgot-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username , email, phone }),
+        });
 
-      if (!response.ok) {
-        throw new Error("Không tìm thấy tài khoản hoặc thông tin không khớp.");
-      }
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Không tìm thấy email.");
+        }
 
-      alert("Mật khẩu mới đã được gửi qua email/số điện thoại!");
-      setIsForgotPasswordModalOpen(false);
-      setIsLoginModalOpen(true);
-      resetFormAndError();
+        alert("Link đặt lại mật khẩu đã được gửi qua email!");
+        setIsForgotPasswordModalOpen(false);
+        setIsLoginModalOpen(true);
+        resetFormAndError();
     } catch (err: any) {
-      setError(err.message);
+        setError(err.message);
     }
   };
 
@@ -471,7 +472,7 @@ export default function RootLayout({
 
         <main>{children}</main>
         <footer className="bottom-0 w-full bg-green-700 p-4 text-center text-white">
-          © 2025 Cửa Hàng Vật Tư Nông Nghiệp
+          &copy; 2025 Cửa Hàng Vật Tư Nông Nghiệp
         </footer>
       </body>
     </html>
