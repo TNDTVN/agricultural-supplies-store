@@ -91,8 +91,9 @@ export default function AddAccount() {
 
     return (
         <main className="p-4">
-            <h2 className="text-xl font-semibold">Thêm tài khoản</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <h1 className="text-3xl text-center font-semibold">Thêm Tài Khoản</h1>
+            <div className="rounded-md border border-gray-300 p-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <Label htmlFor="username">Tên đăng nhập</Label>
                     <Input
@@ -181,6 +182,7 @@ export default function AddAccount() {
                     </Link>
                 </div>
             </form>
+            </div>
         </main>
     );
 }

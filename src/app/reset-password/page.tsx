@@ -32,7 +32,7 @@ export default function ResetPasswordPage() {
 
             setSuccess("Đặt lại mật khẩu thành công! Bạn sẽ được chuyển hướng trong giây lát...");
             setError("");
-            setTimeout(() => router.push("/"), 2000); // Chuyển về trang chủ
+            setTimeout(() => router.push("/"), 2000);
         } catch (err: any) {
             setError(err.message);
         }

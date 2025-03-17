@@ -123,8 +123,9 @@ export default function AddProduct() {
     };
     return (
         <main className="p-4">
-            <h2 className="text-xl font-semibold">Thêm sản phẩm</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <h1 className="text-3xl text-center font-semibold">Thêm Sản Phẩm</h1>
+            <div className="rounded-md border border-gray-300 p-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block font-medium">Tên sản phẩm:</label>
                     <Input name="productName" placeholder="Tên sản phẩm" value={product.productName} onChange={handleChange} />
@@ -204,6 +205,7 @@ export default function AddProduct() {
                     </Link>
                 </div>
             </form>
+            </div>
         </main>
     );
 }

@@ -115,8 +115,8 @@ export default function EditAccount() {
             }
 
             alert("Cập nhật tài khoản thành công!");
-            router.push("/admin/account");
             router.refresh();
+            router.push("/admin/account");
         } catch (error) {
             console.error("Error updating account:", error);
             alert((error as Error).message);
@@ -125,7 +125,7 @@ export default function EditAccount() {
 
     const availableRoles = () => {
         if (account.role === "CUSTOMER") {
-            return ["CUSTOMER", "ADMIN"];
+            return ["CUSTOMER"];
         } else if (account.role === "EMPLOYEE" || account.role === "ADMIN") {
             return ["EMPLOYEE", "ADMIN"];
         }
@@ -133,99 +133,101 @@ export default function EditAccount() {
     };
 
     return (
-        <main className="p-4">
-            <h2 className="text-xl font-semibold">Chỉnh sửa tài khoản</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <Label htmlFor="username">Tên đăng nhập</Label>
-                    <Input
-                        id="username"
-                        name="username"
-                        placeholder="Tên đăng nhập"
-                        value={account.username}
-                        onChange={handleChange}
-                    />
-                </div>
-
-                <div className="relative">
-                    <Label htmlFor="password">Mật khẩu</Label>
-                    <div className="relative">
+        <main className="p-4 rounded-md border">
+            <h1 className="text-3xl text-center font-semibold">Chỉnh Sửa Tài Khoản</h1>
+            <div className="rounded-md border border-gray-300 p-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <Label htmlFor="username">Tên đăng nhập</Label>
                         <Input
-                            id="password"
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Mật khẩu (để trống để giữ nguyên)"
-                            value={account.password}
+                            id="username"
+                            name="username"
+                            placeholder="Tên đăng nhập"
+                            value={account.username}
                             onChange={handleChange}
-                            className="pr-10" // Đệm phải để chừa chỗ cho con mắt
                         />
-                        <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 flex items-center pr-3"
-                            onClick={() => setShowPassword((prev) => !prev)}
-                        >
-                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                        </button>
                     </div>
-                </div>
 
-                <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="Email"
-                        value={account.email}
-                        onChange={handleChange}
-                    />
-                </div>
-
-                <div>
-                    <Label htmlFor="profileImage">Ảnh đại diện</Label>
-                    <Input
-                        id="profileImage"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                    />
-                    {preview && (
-                        <div className="mt-2">
-                            <img
-                                src={preview}
-                                alt="Profile Preview"
-                                className="h-32 w-32 object-cover rounded"
+                    <div className="relative">
+                        <Label htmlFor="password">Mật khẩu</Label>
+                        <div className="relative">
+                            <Input
+                                id="password"
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Mật khẩu (để trống để giữ nguyên)"
+                                value={account.password}
+                                onChange={handleChange}
+                                className="pr-10"
                             />
+                            <button
+                                type="button"
+                                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
-                    )}
-                </div>
+                    </div>
 
-                <div>
-                    <Label>Vai trò</Label>
-                    <Select onValueChange={handleRoleChange} value={account.role}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Chọn vai trò" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableRoles().map((role) => (
-                                <SelectItem key={role} value={role}>
-                                    {role}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+                    <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            placeholder="Email"
+                            value={account.email}
+                            onChange={handleChange}
+                        />
+                    </div>
 
-                <div className="flex space-x-2">
-                    <Button type="submit">Cập Nhật</Button>
-                    <Link
-                        href={"/admin/account"}
-                        className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-black bg-gray-200 border rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                    >
-                        Trở về
-                    </Link>
-                </div>
-            </form>
+                    <div>
+                        <Label htmlFor="profileImage">Ảnh đại diện</Label>
+                        <Input
+                            id="profileImage"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                        />
+                        {preview && (
+                            <div className="mt-2">
+                                <img
+                                    src={preview}
+                                    alt="Profile Preview"
+                                    className="h-32 w-32 object-cover rounded"
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <Label>Vai trò</Label>
+                        <Select onValueChange={handleRoleChange} value={account.role}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Chọn vai trò" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {availableRoles().map((role) => (
+                                    <SelectItem key={role} value={role}>
+                                        {role}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex space-x-2">
+                        <Button type="submit">Cập Nhật</Button>
+                        <Link
+                            href={"/admin/account"}
+                            className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-black bg-gray-200 border rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        >
+                            Trở về
+                        </Link>
+                    </div>
+                </form>
+            </div>
         </main>
     );
 }

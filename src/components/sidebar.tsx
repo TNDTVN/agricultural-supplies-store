@@ -17,6 +17,8 @@ import {
 import {
   BarChart3,
   ChevronDown,
+  Eye,
+  EyeOff,
   FileCheck,
   Home,
   Key,
@@ -60,13 +62,15 @@ export function AppSidebar() {
   const [isUserAccountOpen, setIsUserAccountOpen] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false); // State cho modal đổi mật khẩu
-  const [oldPassword, setOldPassword] = useState(""); // State cho mật khẩu cũ
-  const [newPassword, setNewPassword] = useState(""); // State cho mật khẩu mới
-  const [confirmPassword, setConfirmPassword] = useState(""); // State cho xác nhận mật khẩu
-  const [error, setError] = useState(""); // State cho thông báo lỗi
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [showOldPassword, setShowOldPassword] = useState(false); // Trạng thái hiển thị mật khẩu cũ
+  const [showNewPassword, setShowNewPassword] = useState(false); // Trạng thái hiển thị mật khẩu mới
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Trạng thái hiển thị xác nhận mật khẩu
 
-  // Lấy thông tin tài khoản khi component mount
   useEffect(() => {
     const userRole = sessionStorage.getItem("role");
     const currentUsername = sessionStorage.getItem("username");
@@ -89,15 +93,16 @@ export function AppSidebar() {
     }
   }, []);
 
-  // Hàm xóa các field và lỗi
   const resetFormAndError = () => {
     setError("");
     setOldPassword("");
     setNewPassword("");
     setConfirmPassword("");
+    setShowOldPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
   };
 
-  // Xử lý đổi mật khẩu
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
@@ -218,29 +223,53 @@ export function AppSidebar() {
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">Đổi Mật Khẩu</h2>
             <form onSubmit={handleChangePassword}>
-              <div className="mb-4">
+              <div className="mb-4 relative">
                 <Input
-                  type="password"
+                  type={showOldPassword ? "text" : "password"}
                   placeholder="Mật khẩu cũ"
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
+                  className="pr-10"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                  onClick={() => setShowOldPassword((prev) => !prev)}
+                >
+                  {showOldPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                </button>
               </div>
-              <div className="mb-4">
+              <div className="mb-4 relative">
                 <Input
-                  type="password"
+                  type={showNewPassword ? "text" : "password"}
                   placeholder="Mật khẩu mới"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
+                  className="pr-10"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                  onClick={() => setShowNewPassword((prev) => !prev)}
+                >
+                  {showNewPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                </button>
               </div>
-              <div className="mb-4">
+              <div className="mb-4 relative">
                 <Input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="Xác nhận mật khẩu mới"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pr-10"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                </button>
               </div>
               {error && <p className="text-red-500 mb-4">{error}</p>}
               <div className="flex justify-end gap-2">
