@@ -4,6 +4,7 @@ import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
+    DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ import { ArrowUpDown, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+// Component ColumnVisibilityToggle
 const ColumnVisibilityToggle = ({
     table,
 }: {
@@ -45,9 +47,11 @@ const ColumnVisibilityToggle = ({
                 .getAllColumns()
                 .filter((column) => column.getCanHide())
                 .map((column) => (
-                    <DropdownMenuCheckboxItem key={column.id}
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)} >
+                    <DropdownMenuCheckboxItem
+                        key={column.id}
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    >
                         {column.columnDef.header as string}
                     </DropdownMenuCheckboxItem>
                 ))}
@@ -55,11 +59,41 @@ const ColumnVisibilityToggle = ({
     </DropdownMenu>
 );
 
+const PageSizeSelector = ({
+    pageSize,
+    setPageSize,
+}: {
+    pageSize: number;
+    setPageSize: (size: number) => void;
+}) => {
+    const pageSizeOptions = [5, 10, 15, 20];
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                    {pageSize} <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                {pageSizeOptions.map((size) => (
+                    <DropdownMenuItem
+                        key={size}
+                        onClick={() => setPageSize(size)}
+                    >
+                        {size}
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+};
+
 export default function ProductIndex() {
     const [products, setProducts] = useState<Product[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [pageSize] = useState(5);
+    const [pageSize, setPageSize] = useState(5); // Chuyển pageSize thành state
     const [searchTerm, setSearchTerm] = useState("");
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -67,7 +101,7 @@ export default function ProductIndex() {
 
     useEffect(() => {
         fetchProducts(currentPage);
-    }, [currentPage, sorting]);
+    }, [currentPage, sorting, pageSize]); // Thêm pageSize vào dependency
 
     const fetchProducts = async (page: number) => {
         try {
@@ -130,6 +164,11 @@ export default function ProductIndex() {
         }
     };
 
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+        setCurrentPage(1); // Reset về trang 1 khi thay đổi pageSize
+    };
+
     const columns: ColumnDef<Product>[] = useMemo(
         () => [
             {
@@ -169,9 +208,13 @@ export default function ProductIndex() {
                             Sửa
                         </Button>
                         <Button
+                            className="ml-2 bg-cyan-500 hover:bg-cyan-700"
+                            onClick={() => router.push(`/admin/product/detail/${row.original.productID}`)}>
+                            Chi tiết
+                        </Button>
+                        <Button
                             onClick={() => deleteProduct(row.original.productID)}
-                            className="ml-2 bg-red-600"
-                        >
+                            className="ml-2 bg-red-600" >
                             Xóa
                         </Button>
                     </>
@@ -210,6 +253,7 @@ export default function ProductIndex() {
                 <div className="flex gap-2">
                     <Button onClick={() => router.push("/admin/product/add")}>Thêm sản phẩm</Button>
                     <ColumnVisibilityToggle table={table} />
+                    <PageSizeSelector pageSize={pageSize} setPageSize={handlePageSizeChange} />
                 </div>
             </div>
             <div className="mt-6">

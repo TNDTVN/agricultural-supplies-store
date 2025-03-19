@@ -25,7 +25,7 @@ export default function AddProduct() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await fetch("http://localhost:8080/categories");
+                const res = await fetch("http://localhost:8080/categories/all");
                 const data = await res.json();
                 setCategories(data);
             } catch (error) {
@@ -35,7 +35,7 @@ export default function AddProduct() {
 
         const fetchSuppliers = async () => {
             try {
-                const res = await fetch("http://localhost:8080/suppliers");
+                const res = await fetch("http://localhost:8080/suppliers/all");
                 const data = await res.json();
                 setSuppliers(data);
             } catch (error) {

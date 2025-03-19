@@ -7,5 +7,5 @@ export interface Supplier {
     postalCode?: string;
     country?: string;
     phone?: string;
-    email: string;
+    email?: string;
 }

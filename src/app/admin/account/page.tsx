@@ -5,6 +5,7 @@ import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
+    DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -34,7 +35,6 @@ import { ArrowUpDown, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-// Reusable Pagination Component
 const PaginationControls = ({
     currentPage,
     totalPages,
@@ -92,12 +92,42 @@ const ColumnVisibilityToggle = ({
     </DropdownMenu>
 );
 
+const PageSizeSelector = ({
+    pageSize,
+    setPageSize,
+}: {
+    pageSize: number;
+    setPageSize: (size: number) => void;
+}) => {
+    const pageSizeOptions = [5, 10, 15, 20];
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                    {pageSize} <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                {pageSizeOptions.map((size) => (
+                    <DropdownMenuItem
+                        key={size}
+                        onClick={() => setPageSize(size)}
+                    >
+                        {size}
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+};
+
 export default function AccountIndex() {
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [pageSize] = useState(5);
+    const [pageSize, setPageSize] = useState(5);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -105,7 +135,7 @@ export default function AccountIndex() {
 
     useEffect(() => {
         fetchAccounts(currentPage);
-    }, [currentPage, sorting]);
+    }, [currentPage, sorting, pageSize]);
 
     const fetchAccounts = async (page: number) => {
         try {
@@ -183,6 +213,12 @@ export default function AccountIndex() {
     const columns: ColumnDef<Account>[] = useMemo(
         () => [
             {
+                accessorFn: (_, index) => (currentPage - 1) * pageSize + index + 1, // Tính STT
+                id: "stt",
+                header: "STT",
+                enableSorting: false,
+            },
+            {
                 accessorKey: "accountID",
                 header: "ID",
                 enableSorting: true,
@@ -223,6 +259,11 @@ export default function AccountIndex() {
                             >
                                 Sửa
                             </Button>
+                            <Button
+                                className="ml-2 bg-cyan-500 hover:bg-cyan-700"
+                                onClick={() => router.push(`/admin/account/detail/${account.accountID}`)}>
+                                Chi tiết
+                            </Button>
                             {!account.locked && account.role !== "ADMIN" && (
                                 <Button
                                     onClick={() => lockAccount(account.accountID)}
@@ -245,7 +286,7 @@ export default function AccountIndex() {
                 enableSorting: false,
             },
         ],
-        []
+        [currentPage, pageSize] // Thêm dependency để STT cập nhật khi pageSize hoặc currentPage thay đổi
     );
 
     const table = useReactTable({
@@ -270,6 +311,11 @@ export default function AccountIndex() {
         }
     };
 
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+        setCurrentPage(1);
+    };
+
     return (
         <main className="p-4">
             <div className="mb-4 flex justify-between items-center">
@@ -286,6 +332,7 @@ export default function AccountIndex() {
                         Thêm tài khoản
                     </Button>
                     <ColumnVisibilityToggle table={table} />
+                    <PageSizeSelector pageSize={pageSize} setPageSize={handlePageSizeChange} />
                 </div>
             </div>
 
