@@ -5,7 +5,7 @@ import { CustomSidebarTrigger } from "@/components/ui/CustomSidebarTrigger";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import "./globals.css";
 
@@ -16,6 +16,27 @@ export default function AdminLayout({
 }) {
     const router = useRouter();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const pathname = usePathname();
+
+    const getPageTitle = (path: string) => {
+    const titleMap: { [key: string]: string } = {
+        "/admin": "Quản trị",
+        "/admin/account": "Quản lý tài khoản",
+        "/admin/category": "Quản lý danh mục",
+        "/admin/product": "Quản lý sản phẩm",
+        "/admin/supplier": "Quản lý nhà cung cấp",
+        };
+
+        return (
+        titleMap[path] ||
+        (path.startsWith("/admin/product/") ? "Quản lý sản phẩm" : "FarmTech")
+        );
+    };
+
+    // Cập nhật tiêu đề khi route thay đổi
+    useEffect(() => {
+        document.title = getPageTitle(pathname);
+    }, [pathname]);
 
     useEffect(() => {
         const role = sessionStorage.getItem("role");

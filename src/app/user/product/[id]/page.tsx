@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+
 export default function ProductDetailPage() {
   const { setIsLoginModalOpen } = useAuth();
   const router = useRouter();

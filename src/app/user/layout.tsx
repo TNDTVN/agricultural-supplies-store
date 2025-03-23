@@ -4,11 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import "./globals.css";
 
-// Tạo Context để chia sẻ setIsLoginModalOpen
 interface AuthContextType {
   setIsLoginModalOpen: (open: boolean) => void;
 }
@@ -38,7 +37,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const getPageTitle = (path: string) => {
+    const titleMap: { [key: string]: string } = {
+      "/user": "FarmTech - Trang chủ",
+      "/user/product": "chi tiết sản phẩm",
+    };
 
+    return (
+      titleMap[path] ||
+      (path.startsWith("/user/product/") ? "FarmTech - Chi tiết sản phẩm" : "FarmTech")
+    );
+  };
+
+  // Cập nhật tiêu đề khi route thay đổi
+  useEffect(() => {
+    document.title = getPageTitle(pathname);
+  }, [pathname]);
   useEffect(() => {
     const role = sessionStorage.getItem("role");
     if (role) {
