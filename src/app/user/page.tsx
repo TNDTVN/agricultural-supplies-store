@@ -72,8 +72,8 @@ export default function Home() {
                     {product.unitPrice.toLocaleString()} VND
                   </p>
                   <Button className="w-full bottom-0 bg-red-500/90 hover:bg-red-600 text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute rounded-none">
-                    <Link href={"/user/product"} className="w-full text-center block">
-                      Thêm vào giỏ hàng
+                    <Link href={`user/product/${product.productID}`} className="w-full text-center block">
+                      Mua Ngay
                     </Link>
                   </Button>
                 </CardContent>

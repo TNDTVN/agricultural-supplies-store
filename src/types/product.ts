@@ -1,3 +1,5 @@
+import { ImageType } from "@/types/image";
+import { Category } from "./category";
 export interface Product {
     productID: number;
     productName: string;
@@ -9,4 +11,6 @@ export interface Product {
     unitsOnOrder: number;
     discontinued: boolean;
     productDescription?: string;
+    images: ImageType[];
+    category?: Category;
 }
