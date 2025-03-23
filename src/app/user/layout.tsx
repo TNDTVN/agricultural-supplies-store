@@ -188,7 +188,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <AuthContext.Provider value={{ setIsLoginModalOpen }}>
       <html lang="vi">
         <body className="flex flex-col min-h-screen bg-white">
-          <nav className="w-full flex items-center justify-between bg-green-700 p-4 text-white z-10">
+          <nav className="fixed top-0 left-0 w-full flex items-center justify-between bg-green-700 p-4 text-white z-10 shadow-md">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="relative w-16 h-16 ml-1 mr-1">
@@ -585,7 +585,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           )}
 
-          <main>{children}</main>
+          <main className="pt-[96px]">{children}</main>
           <footer className="bottom-0 w-full bg-green-700 p-4 text-center text-white">
             © 2025 Cửa Hàng Vật Tư Nông Nghiệp
           </footer>

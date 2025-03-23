@@ -47,8 +47,8 @@ export default function ProductDetailPage() {
       }
 
       setProduct(productData);
-      setSelectedImage(productData.images?.length > 0 
-        ? `http://localhost:8080/images/${productData.images[0].imageName}` 
+      setSelectedImage(productData.images?.length > 0
+        ? `http://localhost:8080/images/${productData.images[0].imageName}`
         : "/images/no-image.jpg");
     } catch (err) {
       setError((err as Error).message);
@@ -156,17 +156,9 @@ export default function ProductDetailPage() {
         {/* Product Detail */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 bg-white rounded-xl shadow-lg p-8">
           {/* Image Section */}
-          <div className="space-y-4">
-            <div className="relative w-full h-[500px] rounded-lg overflow-hidden bg-gray-50 group">
-              <Image
-                src={selectedImage}
-                alt={product.productName}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-            <div className="flex gap-3 justify-center">
+          <div className="flex flex-row gap-4">
+            {/* Khối ảnh phụ (thumbnails) bên trái */}
+            <div className="flex flex-col gap-3 mt-6"> {/* Thêm mt-6 để đẩy xuống */}
               {product.images.slice(0, 4).map((img) => (
                 <div
                   key={img.imageID}
@@ -186,6 +178,17 @@ export default function ProductDetailPage() {
                   />
                 </div>
               ))}
+            </div>
+
+            {/* Khối ảnh chính bên phải */}
+            <div className="relative w-full h-[500px] rounded-lg overflow-hidden bg-gray-50 group border-2 border-gray-300"> {/* Thêm viền */}
+              <Image
+                src={selectedImage}
+                alt={product.productName}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-contain transition-transform duration-300 group-hover:scale-105"
+              />
             </div>
           </div>
 
