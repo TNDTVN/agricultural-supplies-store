@@ -1,16 +1,28 @@
-    "use client";
+"use client";
 
-    import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Supplier } from "@/types/supplier";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
-    export default function AddSupplier() {
-    const router = useRouter();
-    const [supplier, setSupplier] = useState<Partial<Supplier>>({
+interface SupplierModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    supplier?: Supplier;
+    onSuccess: () => void;
+}
+
+export function SupplierModal({ isOpen, onClose, supplier, onSuccess }: SupplierModalProps) {
+    const isEdit = !!supplier;
+    const [formData, setFormData] = useState<Partial<Supplier>>({
         supplierName: "",
         contactName: "",
         address: "",
@@ -23,8 +35,36 @@ import { ChangeEvent, FormEvent, useState } from "react";
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Cập nhật formData khi supplier thay đổi (khi mở modal chỉnh sửa)
+    useEffect(() => {
+        if (supplier && isOpen) {
+        setFormData({
+            supplierName: supplier.supplierName || "",
+            contactName: supplier.contactName || "",
+            address: supplier.address || "",
+            city: supplier.city || "",
+            postalCode: supplier.postalCode || "",
+            country: supplier.country || "",
+            phone: supplier.phone || "",
+            email: supplier.email || "",
+        });
+        } else if (!supplier && isOpen) {
+        // Reset form khi mở modal thêm mới
+        setFormData({
+            supplierName: "",
+            contactName: "",
+            address: "",
+            city: "",
+            postalCode: "",
+            country: "",
+            phone: "",
+            email: "",
+        });
+        }
+    }, [supplier, isOpen]);
+
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setSupplier({ ...supplier, [e.target.name]: e.target.value });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e: FormEvent) => {
@@ -33,18 +73,25 @@ import { ChangeEvent, FormEvent, useState } from "react";
         setError(null);
 
         try {
-        const response = await fetch("http://localhost:8080/suppliers", {
-            method: "POST",
+        const url = isEdit 
+            ? `http://localhost:8080/suppliers/${supplier?.supplierID}`
+            : "http://localhost:8080/suppliers";
+        const method = isEdit ? "PUT" : "POST";
+
+        const response = await fetch(url, {
+            method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(supplier),
+            body: JSON.stringify(formData),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(errorText || "Không thể thêm nhà cung cấp");
+            throw new Error(errorText || `Không thể ${isEdit ? "cập nhật" : "thêm"} nhà cung cấp`);
         }
-        alert("Thêm nhà cung cấp thành công!");
-        router.push("/admin/supplier");
+
+        alert(`${isEdit ? "Cập nhật" : "Thêm"} nhà cung cấp thành công!`);
+        onSuccess();
+        onClose();
         } catch (err) {
         const error = err as Error;
         setError(error.message);
@@ -54,20 +101,21 @@ import { ChangeEvent, FormEvent, useState } from "react";
     };
 
     return (
-        <main className="p-4">
-        <h1 className="text-3xl text-center font-semibold mb-4">Thêm Nhà Cung Cấp</h1>
-        <div className="rounded-md border border-gray-300 p-4">
+        <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+            <DialogTitle>{isEdit ? "Chỉnh Sửa Nhà Cung Cấp" : "Thêm Nhà Cung Cấp"}</DialogTitle>
+            </DialogHeader>
             {error && <div className="text-red-500 mb-4">{error}</div>}
             <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Cột trái */}
                 <div className="space-y-4">
                 <div>
                     <Label htmlFor="supplierName">Tên nhà cung cấp</Label>
                     <Input
                     id="supplierName"
                     name="supplierName"
-                    value={supplier.supplierName || ""}
+                    value={formData.supplierName || ""}
                     onChange={handleChange}
                     placeholder="Nhập tên nhà cung cấp"
                     required
@@ -78,7 +126,7 @@ import { ChangeEvent, FormEvent, useState } from "react";
                     <Input
                     id="contactName"
                     name="contactName"
-                    value={supplier.contactName || ""}
+                    value={formData.contactName || ""}
                     onChange={handleChange}
                     placeholder="Nhập tên người liên hệ"
                     />
@@ -88,7 +136,7 @@ import { ChangeEvent, FormEvent, useState } from "react";
                     <Input
                     id="address"
                     name="address"
-                    value={supplier.address || ""}
+                    value={formData.address || ""}
                     onChange={handleChange}
                     placeholder="Nhập địa chỉ"
                     />
@@ -98,20 +146,19 @@ import { ChangeEvent, FormEvent, useState } from "react";
                     <Input
                     id="city"
                     name="city"
-                    value={supplier.city || ""}
+                    value={formData.city || ""}
                     onChange={handleChange}
                     placeholder="Nhập thành phố"
                     />
                 </div>
                 </div>
-                {/* Cột phải */}
                 <div className="space-y-4">
                 <div>
                     <Label htmlFor="postalCode">Mã bưu điện</Label>
                     <Input
                     id="postalCode"
                     name="postalCode"
-                    value={supplier.postalCode || ""}
+                    value={formData.postalCode || ""}
                     onChange={handleChange}
                     placeholder="Nhập mã bưu điện"
                     />
@@ -121,7 +168,7 @@ import { ChangeEvent, FormEvent, useState } from "react";
                     <Input
                     id="country"
                     name="country"
-                    value={supplier.country || ""}
+                    value={formData.country || ""}
                     onChange={handleChange}
                     placeholder="Nhập quốc gia"
                     />
@@ -131,7 +178,7 @@ import { ChangeEvent, FormEvent, useState } from "react";
                     <Input
                     id="phone"
                     name="phone"
-                    value={supplier.phone || ""}
+                    value={formData.phone || ""}
                     onChange={handleChange}
                     placeholder="Nhập số điện thoại"
                     />
@@ -142,26 +189,23 @@ import { ChangeEvent, FormEvent, useState } from "react";
                     id="email"
                     name="email"
                     type="email"
-                    value={supplier.email || ""}
+                    value={formData.email || ""}
                     onChange={handleChange}
                     placeholder="Nhập email"
                     />
                 </div>
                 </div>
             </div>
-            <div className="flex space-x-2">
+            <DialogFooter>
                 <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Đang xử lý..." : "Thêm"}
+                {isLoading ? "Đang xử lý..." : isEdit ? "Cập nhật" : "Thêm"}
                 </Button>
-                <Link
-                href="/admin/supplier"
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-black bg-gray-200 border rounded-md hover:bg-gray-300"
-                >
-                Trở về
-                </Link>
-            </div>
+                <Button variant="outline" onClick={onClose}>
+                Hủy
+                </Button>
+            </DialogFooter>
             </form>
-        </div>
-        </main>
+        </DialogContent>
+        </Dialog>
     );
-    }
+}

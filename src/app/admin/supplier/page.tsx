@@ -184,10 +184,17 @@ const SupplierDetail: React.FC<SupplierDetailProps> = ({ supplierId, open, onClo
                 </div>
                 </div>
                 <DialogFooter className="mt-6 flex justify-center space-x-4">
-                <Button onClick={() => setEditSupplier(supplier)}>Chỉnh sửa</Button>
-                <Button variant="outline" onClick={onClose}>
-                    Đóng
-                </Button>
+                    <Button
+                        onClick={() => {
+                        setEditSupplier(supplier);
+                        onClose();
+                        }}
+                    >
+                        Chỉnh sửa
+                    </Button>
+                    <Button variant="outline" onClick={onClose}>
+                        Đóng
+                    </Button>
                 </DialogFooter>
             </div>
             )}
