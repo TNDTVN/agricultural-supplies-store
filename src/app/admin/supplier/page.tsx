@@ -7,7 +7,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"; // Thêm Dialog từ shadcn/ui
+} from "@/components/ui/dialog"; // Sửa import từ dropdown-menu thành dialog
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -35,8 +35,8 @@ import {
     VisibilityState,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { SupplierModal } from "./SupplierModal"; // Sửa đường dẫn import
 
 interface ColumnVisibilityToggleProps {
     table: ReturnType<typeof useReactTable<Supplier>>;
@@ -95,13 +95,13 @@ interface SupplierDetailProps {
     supplierId: string;
     open: boolean;
     onClose: () => void;
+    setEditSupplier: (supplier: Supplier) => void; // Thêm prop này
 }
 
-const SupplierDetail: React.FC<SupplierDetailProps> = ({ supplierId, open, onClose }) => {
+const SupplierDetail: React.FC<SupplierDetailProps> = ({ supplierId, open, onClose, setEditSupplier }) => {
     const [supplier, setSupplier] = useState<Supplier | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
 
     useEffect(() => {
         if (supplierId && open) {
@@ -126,76 +126,72 @@ const SupplierDetail: React.FC<SupplierDetailProps> = ({ supplierId, open, onClo
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                <DialogTitle className="text-2xl text-center">Chi Tiết Nhà Cung Cấp</DialogTitle>
-                </DialogHeader>
-                {loading ? (
-                <div className="text-center py-4">Đang tải...</div>
-                ) : error || !supplier ? (
-                <div className="text-center py-4">
-                    <p className="text-red-500">{error || "Không tìm thấy nhà cung cấp"}</p>
-                    <Button className="mt-4" onClick={onClose}>
+        <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+            <DialogTitle className="text-2xl text-center">Chi Tiết Nhà Cung Cấp</DialogTitle>
+            </DialogHeader>
+            {loading ? (
+            <div className="text-center py-4">Đang tải...</div>
+            ) : error || !supplier ? (
+            <div className="text-center py-4">
+                <p className="text-red-500">{error || "Không tìm thấy nhà cung cấp"}</p>
+                <Button className="mt-4" onClick={onClose}>
+                Đóng
+                </Button>
+            </div>
+            ) : (
+            <div className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                    <div>
+                    <label className="font-semibold">ID Nhà cung cấp</label>
+                    <p>{supplier.supplierID}</p>
+                    </div>
+                    <div>
+                    <label className="font-semibold">Tên nhà cung cấp</label>
+                    <p>{supplier.supplierName}</p>
+                    </div>
+                    <div>
+                    <label className="font-semibold">Người liên hệ</label>
+                    <p>{supplier.contactName || "Không có"}</p>
+                    </div>
+                    <div>
+                    <label className="font-semibold">Địa chỉ</label>
+                    <p>{supplier.address || "Không có"}</p>
+                    </div>
+                    <div>
+                    <label className="font-semibold">Thành phố</label>
+                    <p>{supplier.city || "Không có"}</p>
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    <div>
+                    <label className="font-semibold">Mã bưu điện</label>
+                    <p>{supplier.postalCode || "Không có"}</p>
+                    </div>
+                    <div>
+                    <label className="font-semibold">Quốc gia</label>
+                    <p>{supplier.country || "Không có"}</p>
+                    </div>
+                    <div>
+                    <label className="font-semibold">Số điện thoại</label>
+                    <p>{supplier.phone || "Không có"}</p>
+                    </div>
+                    <div>
+                    <label className="font-semibold">Email</label>
+                    <p>{supplier.email || "Không có"}</p>
+                    </div>
+                </div>
+                </div>
+                <DialogFooter className="mt-6 flex justify-center space-x-4">
+                <Button onClick={() => setEditSupplier(supplier)}>Chỉnh sửa</Button>
+                <Button variant="outline" onClick={onClose}>
                     Đóng
-                    </Button>
-                </div>
-                ) : (
-                <div className="p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-4">
-                        <div>
-                        <label className="font-semibold">ID Nhà cung cấp</label>
-                        <p>{supplier.supplierID}</p>
-                        </div>
-                        <div>
-                        <label className="font-semibold">Tên nhà cung cấp</label>
-                        <p>{supplier.supplierName}</p>
-                        </div>
-                        <div>
-                        <label className="font-semibold">Người liên hệ</label>
-                        <p>{supplier.contactName || "Không có"}</p>
-                        </div>
-                        <div>
-                        <label className="font-semibold">Địa chỉ</label>
-                        <p>{supplier.address || "Không có"}</p>
-                        </div>
-                        <div>
-                        <label className="font-semibold">Thành phố</label>
-                        <p>{supplier.city || "Không có"}</p>
-                        </div>
-                    </div>
-                    <div className="space-y-4">
-                        <div>
-                        <label className="font-semibold">Mã bưu điện</label>
-                        <p>{supplier.postalCode || "Không có"}</p>
-                        </div>
-                        <div>
-                        <label className="font-semibold">Quốc gia</label>
-                        <p>{supplier.country || "Không có"}</p>
-                        </div>
-                        <div>
-                        <label className="font-semibold">Số điện thoại</label>
-                        <p>{supplier.phone || "Không có"}</p>
-                        </div>
-                        <div>
-                        <label className="font-semibold">Email</label>
-                        <p>{supplier.email || "Không có"}</p>
-                        </div>
-                    </div>
-                    </div>
-                    <DialogFooter className="mt-6 flex justify-center space-x-4">
-                    <Button
-                        onClick={() => router.push(`/admin/supplier/edit/${supplier.supplierID}`)}
-                    >
-                        Chỉnh sửa
-                    </Button>
-                    <Button variant="outline" onClick={onClose}>
-                        Đóng
-                    </Button>
-                    </DialogFooter>
-                </div>
-                )}
-            </DialogContent>
+                </Button>
+                </DialogFooter>
+            </div>
+            )}
+        </DialogContent>
         </Dialog>
     );
 };
@@ -209,7 +205,8 @@ export default function SupplierIndex() {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
-    const router = useRouter();
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editSupplier, setEditSupplier] = useState<Supplier | undefined>(undefined);
 
     useEffect(() => {
         fetchSuppliers(currentPage);
@@ -258,21 +255,21 @@ export default function SupplierIndex() {
     };
 
     const deleteSupplier = async (id: number) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa nhà cung cấp này?")) return;
+        if (!confirm("Bạn có chắc chắn muốn xóa nhà cung cấp này?")) return;
         try {
-            const response = await fetch(`http://localhost:8080/suppliers/${id}`, {
+        const response = await fetch(`http://localhost:8080/suppliers/${id}`, {
             method: "DELETE",
-            });
-            if (!response.ok) {
+        });
+        if (!response.ok) {
             const errorText = await response.text();
             alert(errorText);
             return;
-            }
-            alert("Xóa nhà cung cấp thành công!");
-            fetchSuppliers(currentPage);
+        }
+        alert("Xóa nhà cung cấp thành công!");
+        fetchSuppliers(currentPage);
         } catch (error) {
-            const err = error as Error;
-            alert(err.message || "Có lỗi xảy ra khi xóa nhà cung cấp!");
+        const err = error as Error;
+        alert(err.message || "Có lỗi xảy ra khi xóa nhà cung cấp!");
         }
     };
 
@@ -285,6 +282,10 @@ export default function SupplierIndex() {
     const handlePageSizeChange = (newSize: number) => {
         setPageSize(newSize);
         setCurrentPage(1);
+    };
+
+    const refreshSuppliers = () => {
+        fetchSuppliers(currentPage);
     };
 
     const columns: ColumnDef<Supplier>[] = useMemo(
@@ -328,11 +329,7 @@ export default function SupplierIndex() {
             header: "Hành động",
             cell: ({ row }) => (
             <>
-                <Button
-                onClick={() => router.push(`/admin/supplier/edit/${row.original.supplierID}`)}
-                >
-                Sửa
-                </Button>
+                <Button onClick={() => setEditSupplier(row.original)}>Sửa</Button>
                 <Button
                 className="ml-2 bg-cyan-500 hover:bg-cyan-700"
                 onClick={() => setSelectedSupplierId(row.original.supplierID.toString())}
@@ -375,9 +372,7 @@ export default function SupplierIndex() {
             <Button onClick={handleSearch}>Tìm</Button>
             </div>
             <div className="flex gap-2">
-            <Button onClick={() => router.push("/admin/supplier/add")}>
-                Thêm nhà cung cấp
-            </Button>
+            <Button onClick={() => setIsAddModalOpen(true)}>Thêm nhà cung cấp</Button>
             <ColumnVisibilityToggle table={table} />
             <PageSizeSelector pageSize={pageSize} setPageSize={handlePageSizeChange} />
             </div>
@@ -456,13 +451,28 @@ export default function SupplierIndex() {
             </Button>
             </div>
         </div>
+
+        <SupplierModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onSuccess={refreshSuppliers}
+        />
+
+        <SupplierModal
+            isOpen={!!editSupplier}
+            onClose={() => setEditSupplier(undefined)}
+            supplier={editSupplier}
+            onSuccess={refreshSuppliers}
+        />
+
         {selectedSupplierId && (
             <SupplierDetail
-            supplierId={selectedSupplierId}
-            open={!!selectedSupplierId}
-            onClose={() => setSelectedSupplierId(null)}
+                supplierId={selectedSupplierId}
+                open={!!selectedSupplierId}
+                onClose={() => setSelectedSupplierId(null)}
+                setEditSupplier={setEditSupplier} // Truyền setEditSupplier xuống
             />
         )}
         </main>
     );
-}
+    }
