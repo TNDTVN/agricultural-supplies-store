@@ -134,7 +134,7 @@ export default function ProductModal({ isOpen, onClose, mode, product, onSave }:
                 ...formData,
                 imageNames,
             };
-            const url = currentMode === "add" 
+            const url = currentMode === "add"
                 ? "http://localhost:8080/products/add"
                 : `http://localhost:8080/products/update/${product?.productID}`;
             const method = currentMode === "add" ? "POST" : "PUT";
