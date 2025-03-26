@@ -175,6 +175,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Hiển thị toast "Đang xử lý" ngay lập tức
+    const processingToastId = toast.loading("Đang xử lý vui lòng đợi!", {
+      position: "top-right",
+    });
+
     try {
       const response = await fetch("http://localhost:8080/accounts/forgot-password", {
         method: "POST",
@@ -187,14 +193,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         throw new Error(errorText || "Không tìm thấy email.");
       }
 
-      toast.success("Link đặt lại mật khẩu đã được gửi qua email!", {
-        position: "top-right",
+      // Cập nhật toast thành công sau khi request hoàn tất
+      toast.update(processingToastId, {
+        render: "Link đặt lại mật khẩu đã được gửi qua email!",
+        type: "success",
+        isLoading: false,
         autoClose: 3000,
       });
+
       setIsForgotPasswordModalOpen(false);
       setIsLoginModalOpen(true);
       resetFormAndError();
     } catch (err: any) {
+      // Cập nhật toast thành lỗi nếu có lỗi xảy ra
+      toast.update(processingToastId, {
+        render: err.message,
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
       setError(err.message);
     }
   };
