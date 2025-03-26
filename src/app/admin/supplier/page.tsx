@@ -7,7 +7,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"; // Sửa import từ dropdown-menu thành dialog
+} from "@/components/ui/dialog";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -36,6 +36,7 @@ import {
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "react-toastify";
 import { SupplierModal } from "./SupplierModal"; // Sửa đường dẫn import
 
 interface ColumnVisibilityToggleProps {
@@ -269,14 +270,23 @@ export default function SupplierIndex() {
         });
         if (!response.ok) {
             const errorText = await response.text();
-            alert(errorText);
+            toast.success("Lỗi: " + errorText, {
+                position: "top-right",
+                autoClose: 3000,
+            });
             return;
         }
-        alert("Xóa nhà cung cấp thành công!");
+        toast.success("Xóa nhà cung cấp thành công!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
         fetchSuppliers(currentPage);
         } catch (error) {
         const err = error as Error;
-        alert(err.message || "Có lỗi xảy ra khi xóa nhà cung cấp!");
+        toast.success(err.message || "Có lỗi xảy ra khi xóa nhà cung cấp!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
         }
     };
 

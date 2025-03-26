@@ -1,4 +1,3 @@
-// components/ProductDetailPage.tsx
 "use client";
 
 import { useAuth } from "@/app/user/layout";
@@ -9,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
+import { toast } from "react-toastify"; // Import react-toastify
 
 export default function ProductDetailPage() {
   const { setIsLoginModalOpen } = useAuth();
@@ -64,7 +63,10 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (quantity > product!.unitsInStock) {
-      alert("Số lượng sản phẩm không đủ!");
+      toast.error("Số lượng sản phẩm không đủ!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
@@ -97,12 +99,18 @@ export default function ProductDetailPage() {
       });
 
       if (!response.ok) throw new Error("Thêm vào giỏ hàng thất bại!");
-      
-      alert(`Đã thêm ${quantity} ${product?.productName} vào giỏ hàng!`);
+
+      toast.success(`Đã thêm ${quantity} ${product?.productName} vào giỏ hàng!`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
       setShowModal(false);
       router.push("/user");
     } catch (err) {
-      alert("Có lỗi xảy ra: " + (err instanceof Error ? err.message : "Lỗi không xác định"));
+      toast.error("Có lỗi xảy ra: " + (err instanceof Error ? err.message : "Lỗi không xác định"), {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -159,7 +167,7 @@ export default function ProductDetailPage() {
           {/* Image Section */}
           <div className="flex flex-row gap-4">
             {/* Khối ảnh phụ (thumbnails) bên trái */}
-            <div className="flex flex-col gap-3 mt-6"> {/* Thêm mt-6 để đẩy xuống */}
+            <div className="flex flex-col gap-3 mt-6">
               {product.images.slice(0, 4).map((img) => (
                 <div
                   key={img.imageID}
@@ -182,7 +190,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Khối ảnh chính bên phải */}
-            <div className="relative w-full h-[500px] rounded-lg overflow-hidden bg-gray-50 group border-2 border-gray-300"> {/* Thêm viền */}
+            <div className="relative w-full h-[500px] rounded-lg overflow-hidden bg-gray-50 group border-2 border-gray-300">
               <Image
                 src={selectedImage}
                 alt={product.productName}
@@ -199,7 +207,7 @@ export default function ProductDetailPage() {
             <p className="text-gray-600 leading-relaxed">
               {product.productDescription || "Không có mô tả chi tiết cho sản phẩm này."}
             </p>
-            
+
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-500">Tình trạng:</span>
               <span className={`text-sm font-medium ${product.unitsInStock > 0 ? "text-green-600" : "text-red-600"}`}>

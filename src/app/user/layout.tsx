@@ -1,11 +1,13 @@
-// app/layout.tsx
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
 interface AuthContextType {
@@ -36,24 +38,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [justLoggedOut, setJustLoggedOut] = useState(false); // Thêm trạng thái tạm thời cho đăng xuất
+
   const router = useRouter();
   const pathname = usePathname();
+
+  // Cập nhật tiêu đề trang khi route thay đổi
   const getPageTitle = (path: string) => {
     const titleMap: { [key: string]: string } = {
       "/user": "FarmTech - Trang chủ",
       "/user/product": "chi tiết sản phẩm",
     };
-
     return (
       titleMap[path] ||
       (path.startsWith("/user/product/") ? "FarmTech - Chi tiết sản phẩm" : "FarmTech")
     );
   };
 
-  // Cập nhật tiêu đề khi route thay đổi
   useEffect(() => {
     document.title = getPageTitle(pathname);
   }, [pathname]);
+
+  // Kiểm tra trạng thái đăng nhập khi tải lại trang
   useEffect(() => {
     const role = sessionStorage.getItem("role");
     if (role) {
@@ -63,6 +69,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       }
     }
   }, [router]);
+
+  useEffect(() => {
+    const justLoggedOutFlag = sessionStorage.getItem("justLoggedOut");
+    if (justLoggedOutFlag === "true" && pathname === "/user" && !isLoggedIn) {
+      toast.success("Đăng xuất thành công!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      sessionStorage.removeItem("justLoggedOut"); // Xóa cờ sau khi hiển thị toast
+    }
+  }, [pathname, isLoggedIn]);
+
+  // Giữ nguyên handleLogout hiện tại
+  const handleLogout = () => {
+    sessionStorage.removeItem("accountID");
+    sessionStorage.removeItem("role");
+    setIsLoggedIn(false);
+    resetFormAndError();
+    toast.success("Đăng xuất thành công!", {
+      position: "top-right",
+      autoClose: 3000,
+    });
+    router.push("/user"); // Chuyển hướng về trang chủ sau khi đăng xuất
+  };
 
   const resetFormAndError = () => {
     setError("");
@@ -100,11 +130,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       sessionStorage.setItem("accountID", accountID);
       sessionStorage.setItem("role", role);
       setIsLoggedIn(true);
-      alert("Đăng nhập thành công!");
       setIsLoginModalOpen(false);
       resetFormAndError();
+
       if (role === "ADMIN" || role === "EMPLOYEE") {
-        router.push("/admin");
+        sessionStorage.setItem("justLoggedIn", "true"); // Đánh dấu vừa đăng nhập
+        router.push("/admin"); // Chuyển hướng ngay lập tức
+      } else {
+        toast.success("Đăng nhập thành công!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
       }
     } catch (err: any) {
       setError(err.message);
@@ -125,7 +161,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         throw new Error(errorText || "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
       }
 
-      alert("Đăng ký thành công! Vui lòng đăng nhập.");
+      toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       setIsRegisterModalOpen(false);
       setIsLoginModalOpen(true);
       resetFormAndError();
@@ -148,7 +187,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         throw new Error(errorText || "Không tìm thấy email.");
       }
 
-      alert("Link đặt lại mật khẩu đã được gửi qua email!");
+      toast.success("Link đặt lại mật khẩu đã được gửi qua email!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       setIsForgotPasswordModalOpen(false);
       setIsLoginModalOpen(true);
       resetFormAndError();
@@ -176,7 +218,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         throw new Error(errorText || "Đổi mật khẩu thất bại!");
       }
 
-      alert("Đổi mật khẩu thành công!");
+      toast.success("Đổi mật khẩu thành công!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       setIsChangePasswordModalOpen(false);
       resetFormAndError();
     } catch (err: any) {
@@ -184,18 +229,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("accountID");
-    sessionStorage.removeItem("role");
-    setIsLoggedIn(false);
-    alert("Đăng xuất thành công!");
-    resetFormAndError();
-  };
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      alert(`Tìm kiếm: ${searchQuery}`);
+      toast.info(`Tìm kiếm: ${searchQuery}`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -340,7 +380,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       className="absolute inset-y-0 right-0 flex items-center pr-3"
                       onClick={() => setShowPassword((prev) => !prev)}
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-500" />
+                      )}
                     </button>
                   </div>
                   {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -412,7 +456,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       className="absolute inset-y-0 right-0 flex items-center pr-3"
                       onClick={() => setShowPassword((prev) => !prev)}
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-500" />
+                      )}
                     </button>
                   </div>
                   <div className="mb-4">
@@ -546,7 +594,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       className="absolute inset-y-0 right-0 flex items-center pr-3"
                       onClick={() => setShowOldPassword((prev) => !prev)}
                     >
-                      {showOldPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                      {showOldPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-500" />
+                      )}
                     </button>
                   </div>
                   <div className="mb-4 relative">
@@ -562,7 +614,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       className="absolute inset-y-0 right-0 flex items-center pr-3"
                       onClick={() => setShowNewPassword((prev) => !prev)}
                     >
-                      {showNewPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                      {showNewPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-500" />
+                      )}
                     </button>
                   </div>
                   <div className="mb-4 relative">
@@ -578,7 +634,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       className="absolute inset-y-0 right-0 flex items-center pr-3"
                       onClick={() => setShowConfirmPassword((prev) => !prev)}
                     >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-500" />
+                      )}
                     </button>
                   </div>
                   {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -604,6 +664,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <footer className="bottom-0 w-full bg-green-700 p-4 text-center text-white">
             © 2025 Cửa Hàng Vật Tư Nông Nghiệp
           </footer>
+
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+          />
         </body>
       </html>
     </AuthContext.Provider>

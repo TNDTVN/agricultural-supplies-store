@@ -7,19 +7,24 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
 export default function AdminLayout({
     children,
-}: {
+    }: {
     children: React.ReactNode;
-}) {
+    }) {
     const router = useRouter();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const pathname = usePathname();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [justLoggedIn, setJustLoggedIn] = useState(false); // Trạng thái cho đăng nhập
+    const [justLoggedOut, setJustLoggedOut] = useState(false); // Trạng thái cho đăng xuất
 
+    // Cập nhật tiêu đề trang khi route thay đổi
     const getPageTitle = (path: string) => {
-    const titleMap: { [key: string]: string } = {
+        const titleMap: { [key: string]: string } = {
         "/admin": "Quản trị",
         "/admin/account": "Quản lý tài khoản",
         "/admin/category": "Quản lý danh mục",
@@ -33,15 +38,21 @@ export default function AdminLayout({
         );
     };
 
-    // Cập nhật tiêu đề khi route thay đổi
     useEffect(() => {
         document.title = getPageTitle(pathname);
     }, [pathname]);
 
+    // Kiểm tra trạng thái đăng nhập khi tải lại trang
     useEffect(() => {
         const role = sessionStorage.getItem("role");
         if (role === "ADMIN" || role === "EMPLOYEE") {
         setIsLoggedIn(true);
+        // Kiểm tra nếu vừa đăng nhập từ RootLayout
+        const justLoggedInFlag = sessionStorage.getItem("justLoggedIn");
+        if (justLoggedInFlag === "true") {
+            setJustLoggedIn(true);
+            sessionStorage.removeItem("justLoggedIn"); // Xóa cờ sau khi sử dụng
+        }
         } else {
         router.push("/user");
         }
@@ -50,10 +61,21 @@ export default function AdminLayout({
     const handleLogout = () => {
         sessionStorage.removeItem("accountID");
         sessionStorage.removeItem("role");
+        sessionStorage.setItem("justLoggedOut", "true"); // Đặt cờ tạm thời trong sessionStorage
         setIsLoggedIn(false);
-        alert("Đăng xuất thành công!");
-        router.push("/user");
+        router.push("/user"); // Chuyển hướng về trang chủ sau khi đăng xuất
     };
+
+    // Cập nhật useEffect (chỉ giữ logic đăng nhập)
+    useEffect(() => {
+        if (pathname === "/admin" && isLoggedIn && justLoggedIn) {
+            toast.success("Đăng nhập thành công!", {
+            position: "top-right",
+            autoClose: 3000,
+            });
+            setJustLoggedIn(false); // Reset trạng thái sau khi hiển thị toast
+        }
+    }, [pathname, isLoggedIn, justLoggedIn]);
 
     return (
         <html>
@@ -88,8 +110,19 @@ export default function AdminLayout({
                 )}
                 </nav>
                 <main className="flex-1">{children}</main>
+                <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                />
                 <footer className="w-full bg-green-700 p-4 text-center text-white">
-                &copy; 2025 Cửa Hàng Vật Tư Nông Nghiệp
+                © 2025 Cửa Hàng Vật Tư Nông Nghiệp
                 </footer>
             </div>
             </SidebarProvider>

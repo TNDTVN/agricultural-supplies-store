@@ -1,12 +1,12 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { ToastContainer, toast } from "react-toastify"; // Thêm import react-toastify
+import "react-toastify/dist/ReactToastify.css"; // Thêm CSS của react-toastify
 
 export default function ResetPasswordPage() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
@@ -14,7 +14,10 @@ export default function ResetPasswordPage() {
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newPassword !== confirmPassword) {
-            setError("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+            toast.error("Mật khẩu mới và xác nhận mật khẩu không khớp!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
             return;
         }
 
@@ -30,11 +33,16 @@ export default function ResetPasswordPage() {
                 throw new Error(errorText || "Đặt lại mật khẩu thất bại!");
             }
 
-            setSuccess("Đặt lại mật khẩu thành công! Bạn sẽ được chuyển hướng trong giây lát...");
-            setError("");
+            toast.success("Đặt lại mật khẩu thành công! Bạn sẽ được chuyển hướng trong giây lát...", {
+                position: "top-right",
+                autoClose: 2000,
+            });
             setTimeout(() => router.push("/"), 2000);
         } catch (err: any) {
-            setError(err.message);
+            toast.error(err.message, {
+                position: "top-right",
+                autoClose: 3000,
+            });
         }
     };
 
@@ -72,8 +80,6 @@ export default function ResetPasswordPage() {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                         />
                     </div>
-                    {error && <div className="alert alert-danger py-2 mb-3">{error}</div>}
-                    {success && <div className="alert alert-success py-2 mb-3">{success}</div>}
                     <div className="text-end">
                         <button type="submit" className="btn btn-success">
                             Xác nhận
@@ -84,6 +90,18 @@ export default function ResetPasswordPage() {
             <div className="card-footer text-center text-muted py-3">
                 <p>© 2025 FarmTech - Cửa Hàng Vật Tư Nông Nghiệp</p>
             </div>
+            {/* Thêm ToastContainer */}
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
         </div>
     );
 }
