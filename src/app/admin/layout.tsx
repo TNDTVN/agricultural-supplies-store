@@ -42,7 +42,6 @@ export default function AdminLayout({
         document.title = getPageTitle(pathname);
     }, [pathname]);
 
-    // Kiểm tra trạng thái đăng nhập khi tải lại trang
     useEffect(() => {
         const role = sessionStorage.getItem("role");
         if (role === "ADMIN" || role === "EMPLOYEE") {
