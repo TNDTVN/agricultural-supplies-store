@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
@@ -176,7 +177,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Hiển thị toast "Đang xử lý" ngay lập tức
     const processingToastId = toast.loading("Đang xử lý vui lòng đợi!", {
       position: "top-right",
     });
@@ -274,7 +274,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
                 <h1 className="text-2xl font-bold">FarmTech</h1>
               </div>
-              <button className="hover:underline">Trang chủ</button>
+              <Link href={"/user"}><button className="hover:underline">Trang chủ</button></Link>
               <button className="hover:underline">Cửa hàng</button>
               <button className="hover:underline">Giỏ hàng</button>
               {isLoggedIn && (
