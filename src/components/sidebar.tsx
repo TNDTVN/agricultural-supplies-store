@@ -40,7 +40,7 @@ const allItems = [
   { title: "Product", url: "/admin/product", icon: Search, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Category", url: "/admin/category", icon: Layers, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Supplier", url: "/admin/supplier", icon: Truck, roles: ["ADMIN", "EMPLOYEE"] },
-  { title: "Employee", url: "/admin/Employee", icon: Users, roles: ["ADMIN"] },
+  { title: "Employee", url: "/admin/employee", icon: Users, roles: ["ADMIN"] },
   { title: "Customer", url: "#", icon: UserCheck, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Order", url: "#", icon: ShoppingCart, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Approved Invoice", url: "#", icon: FileCheck, roles: ["ADMIN", "EMPLOYEE"] },
