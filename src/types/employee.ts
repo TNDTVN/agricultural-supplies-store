@@ -12,4 +12,6 @@ export interface Employee {
     email: string;
     accountID?: number;
     username?: string;
+    locked?: boolean;
+    role?: string;
 }

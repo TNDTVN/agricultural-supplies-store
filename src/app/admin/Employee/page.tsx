@@ -91,6 +91,7 @@ const PageSizeSelector: React.FC<PageSizeSelectorProps> = ({ pageSize, setPageSi
         </DropdownMenu>
     );
 };
+
 const formatDateToDDMMYYYY = (dateStr: string | undefined): string => {
     if (!dateStr) return "Không có";
     const date = new Date(dateStr);
@@ -124,6 +125,7 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({ employeeID, open, onClo
             const response = await fetch(`http://localhost:8080/employees/${employeeID}`);
             if (!response.ok) throw new Error("Không thể lấy thông tin nhân viên");
             const data: Employee = await response.json();
+            console.log("Employee detail response:", data); // Debug response
             setEmployee(data);
         } catch (err) {
             const error = err as Error;
@@ -183,8 +185,12 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({ employeeID, open, onClo
                                     <p>{employee.address || "Không có"}</p>
                                 </div>
                                 <div>
-                                    <label className="font-semibold">ID Tài khoản</label>
-                                    <p>{employee.accountID || "Không có"}</p>
+                                    <label className="font-semibold">Trạng thái tài khoản</label>
+                                    <p>{employee.locked ? "Đã khóa" : "Hoạt động"}</p>
+                                </div>
+                                <div>
+                                    <label className="font-semibold">Vai trò</label>
+                                    <p>{employee.role || "Không có"}</p>
                                 </div>
                             </div>
                         </div>
@@ -233,11 +239,17 @@ export default function EmployeeIndex() {
             const response = await fetch(
                 `http://localhost:8080/employees?page=${page}&size=${pageSize}${sortParam}`
             );
+            if (!response.ok) throw new Error("Không thể lấy danh sách nhân viên");
             const data = await response.json();
+            console.log("Employees list response:", data.content); // Debug response
             setEmployees(data.content);
             setTotalPages(data.totalPages);
         } catch (error) {
             console.error("Error fetching employees:", error);
+            toast.error("Có lỗi xảy ra khi tải danh sách nhân viên!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
         }
     };
 
@@ -257,28 +269,95 @@ export default function EmployeeIndex() {
                     searchTerm
                 )}&page=1&size=${pageSize}${sortParam}`
             );
+            if (!response.ok) throw new Error("Không thể tìm kiếm nhân viên");
             const data = await response.json();
             setEmployees(data.content);
             setTotalPages(data.totalPages);
             setCurrentPage(1);
         } catch (error) {
             console.error("Error searching employees:", error);
+            toast.error("Có lỗi xảy ra khi tìm kiếm nhân viên!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
+        }
+    };
+
+    const lockEmployee = async (id: number) => {
+        if (!confirm("Bạn có chắc chắn muốn khóa tài khoản nhân viên này?")) return;
+        try {
+            const response = await fetch(`http://localhost:8080/employees/${id}/lock`, {
+                method: "POST",
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Không thể khóa tài khoản");
+            }
+            toast.success("Khóa tài khoản nhân viên thành công!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
+            // Đồng bộ lại dữ liệu từ server
+            await fetchEmployees(currentPage);
+            // Cập nhật lại modal nếu đang mở
+            if (selectedEmployeeId === id.toString()) {
+                const detailResponse = await fetch(`http://localhost:8080/employees/${id}`);
+                const updatedEmployee = await detailResponse.json();
+                setEmployees((prev) =>
+                    prev.map((emp) => (emp.employeeID === id ? updatedEmployee : emp))
+                );
+            }
+        } catch (error) {
+            const err = error as Error;
+            toast.error(err.message || "Có lỗi xảy ra khi khóa tài khoản nhân viên!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
+        }
+    };
+
+    const unlockEmployee = async (id: number) => {
+        if (!confirm("Bạn có chắc chắn muốn mở khóa tài khoản nhân viên này?")) return;
+        try {
+            const response = await fetch(`http://localhost:8080/employees/${id}/unlock`, {
+                method: "POST",
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Không thể mở khóa tài khoản");
+            }
+            toast.success("Mở khóa tài khoản nhân viên thành công!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
+            // Đồng bộ lại dữ liệu từ server
+            await fetchEmployees(currentPage);
+            // Cập nhật lại modal nếu đang mở
+            if (selectedEmployeeId === id.toString()) {
+                const detailResponse = await fetch(`http://localhost:8080/employees/${id}`);
+                const updatedEmployee = await detailResponse.json();
+                setEmployees((prev) =>
+                    prev.map((emp) => (emp.employeeID === id ? updatedEmployee : emp))
+                );
+            }
+        } catch (error) {
+            const err = error as Error;
+            toast.error(err.message || "Có lỗi xảy ra khi mở khóa tài khoản nhân viên!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
         }
     };
 
     const deleteEmployee = async (id: number) => {
-        if (!confirm("Bạn có chắc chắn muốn xóa nhân viên này? (Khi xóa nhân viên sẽ xóa tài khoản cảu nhân viên)")) return;
+        if (!confirm("Bạn có chắc chắn muốn xóa nhân viên này?")) return;
         try {
             const response = await fetch(`http://localhost:8080/employees/${id}`, {
                 method: "DELETE",
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                toast.error("Lỗi: " + errorText, {
-                    position: "top-right",
-                    autoClose: 3000,
-                });
-                return;
+                throw new Error(errorText || "Không thể xóa nhân viên");
             }
             toast.success("Xóa nhân viên thành công!", {
                 position: "top-right",
@@ -345,6 +424,18 @@ export default function EmployeeIndex() {
                 enableSorting: false,
             },
             {
+                accessorKey: "role",
+                header: "Vai trò",
+                cell: ({ row }) => row.original.role || "Không có",
+                enableSorting: true,
+            },
+            {
+                accessorKey: "isLocked",
+                header: "Trạng thái",
+                cell: ({ row }) => (row.original.locked ? "Đã khóa" : "Hoạt động"),
+                enableSorting: true,
+            },
+            {
                 id: "actions",
                 header: "Hành động",
                 cell: ({ row }) => (
@@ -356,12 +447,33 @@ export default function EmployeeIndex() {
                         >
                             Chi tiết
                         </Button>
-                        <Button
-                            className="ml-2 bg-red-600 hover:bg-red-800"
-                            onClick={() => deleteEmployee(row.original.employeeID)}
-                        >
-                            Xóa
-                        </Button>
+                        {row.original.role !== "ADMIN" && (
+                            <>
+                                {row.original.locked ? (
+                                    <Button
+                                        className="ml-2 bg-green-600 hover:bg-green-800"
+                                        onClick={() => unlockEmployee(row.original.employeeID)}
+                                    >
+                                        Mở khóa
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        className="ml-2 bg-orange-600 hover:bg-orange-800"
+                                        onClick={() => lockEmployee(row.original.employeeID)}
+                                    >
+                                        Khóa
+                                    </Button>
+                                )}
+                                {!row.original.locked && (
+                                    <Button
+                                        className="ml-2 bg-red-600 hover:bg-red-800"
+                                        onClick={() => deleteEmployee(row.original.employeeID)}
+                                    >
+                                        Xóa
+                                    </Button>
+                                )}
+                            </>
+                        )}
                     </>
                 ),
                 enableSorting: false,
@@ -445,7 +557,7 @@ export default function EmployeeIndex() {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="h-24 text-center">
+                                    <TableCell colSpan={9} className="h-24 text-center">
                                         Không có dữ liệu
                                     </TableCell>
                                 </TableRow>

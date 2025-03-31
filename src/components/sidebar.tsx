@@ -41,7 +41,7 @@ const allItems = [
   { title: "Category", url: "/admin/category", icon: Layers, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Supplier", url: "/admin/supplier", icon: Truck, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Employee", url: "/admin/employee", icon: Users, roles: ["ADMIN"] },
-  { title: "Customer", url: "#", icon: UserCheck, roles: ["ADMIN", "EMPLOYEE"] },
+  { title: "Customer", url: "/admin/customer", icon: UserCheck, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Order", url: "#", icon: ShoppingCart, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Approved Invoice", url: "#", icon: FileCheck, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Statistics", url: "#", icon: BarChart3, roles: ["ADMIN", "EMPLOYEE"] },

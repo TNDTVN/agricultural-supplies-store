@@ -9,4 +9,5 @@ export interface Customer {
     phone?: string;
     email: string;
     accountID: number;
+    locked?: boolean;
 }
