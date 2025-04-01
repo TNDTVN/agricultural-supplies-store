@@ -276,13 +276,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
               <Link href={"/user"}><button className="hover:underline">Trang chủ</button></Link>
               <button className="hover:underline">Cửa hàng</button>
-              <button className="hover:underline">Giỏ hàng</button>
               {isLoggedIn && (
                 <>
+                <Link href={"/user/cart"}>
+                  <button className="hover:underline">Giỏ hàng</button>
+                </Link>
                   <button className="hover:underline">Lịch sử mua hàng</button>
                   <button className="hover:underline">Sản phẩm đã mua</button>
                 </>
               )}
+              <Link href={"/user/contact"}><button className="hover:underline">Liên hệ</button></Link>
             </div>
 
             <div className="flex items-center gap-4">
@@ -678,10 +681,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           )}
 
           <main className="pt-[96px]">{children}</main>
-          <footer className="bottom-0 w-full bg-green-700 p-4 text-center text-white">
-            © 2025 Cửa Hàng Vật Tư Nông Nghiệp
-          </footer>
-
           <ToastContainer
             position="top-right"
             autoClose={3000}
@@ -693,6 +692,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             draggable
             pauseOnHover
           />
+          <footer className="bottom-0 w-full bg-green-700 p-4 text-center text-white">
+            © 2025 Cửa Hàng Vật Tư Nông Nghiệp
+          </footer>
         </body>
       </html>
     </AuthContext.Provider>

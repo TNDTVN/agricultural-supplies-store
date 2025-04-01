@@ -93,7 +93,6 @@ export default function Home() {
           ))}
         </ul>
       </div>
-
       {/* Danh sách sản phẩm với hiệu ứng */}
       <motion.div
         className="mb-12 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 w-full px-8 md:px-16 lg:px-32 gap-0"

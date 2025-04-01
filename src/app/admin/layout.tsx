@@ -19,8 +19,8 @@ export default function AdminLayout({
     const router = useRouter();
     const pathname = usePathname();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [justLoggedIn, setJustLoggedIn] = useState(false); // Trạng thái cho đăng nhập
-    const [justLoggedOut, setJustLoggedOut] = useState(false); // Trạng thái cho đăng xuất
+    const [justLoggedIn, setJustLoggedIn] = useState(false);
+    const [justLoggedOut, setJustLoggedOut] = useState(false);
 
     // Cập nhật tiêu đề trang khi route thay đổi
     const getPageTitle = (path: string) => {

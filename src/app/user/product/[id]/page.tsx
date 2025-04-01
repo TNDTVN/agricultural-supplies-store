@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify"; // Import react-toastify
+import { toast } from "react-toastify";
 
 export default function ProductDetailPage() {
   const { setIsLoginModalOpen } = useAuth();
@@ -47,9 +47,11 @@ export default function ProductDetailPage() {
       }
 
       setProduct(productData);
-      setSelectedImage(productData.images?.length > 0
-        ? `http://localhost:8080/images/${productData.images[0].imageName}`
-        : "/images/no-image.jpg");
+      setSelectedImage(
+        productData.images?.length > 0
+          ? `http://localhost:8080/images/${productData.images[0].imageName}`
+          : "/images/no-image.jpg"
+      );
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -92,25 +94,31 @@ export default function ProductDetailPage() {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
-          customerID: accountID,
+          accountID: accountID,
           productID: product!.productID.toString(),
           quantity: quantity.toString(),
-        }),
+        }).toString(),
       });
 
-      if (!response.ok) throw new Error("Thêm vào giỏ hàng thất bại!");
+      console.log("Response status:", response.status); // Debug status
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Thêm vào giỏ hàng thất bại!");
+      }
 
+      console.log("Thêm thành công, gọi toast"); // Debug
       toast.success(`Đã thêm ${quantity} ${product?.productName} vào giỏ hàng!`, {
         position: "top-right",
         autoClose: 3000,
       });
       setShowModal(false);
-      router.push("/user");
     } catch (err) {
+      console.error("Lỗi trong confirmAddToCart:", err); // Debug lỗi
       toast.error("Có lỗi xảy ra: " + (err instanceof Error ? err.message : "Lỗi không xác định"), {
         position: "top-right",
         autoClose: 3000,
       });
+      setShowModal(false);
     }
   };
 
@@ -166,7 +174,6 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 bg-white rounded-xl shadow-lg p-8">
           {/* Image Section */}
           <div className="flex flex-row gap-4">
-            {/* Khối ảnh phụ (thumbnails) bên trái */}
             <div className="flex flex-col gap-3 mt-6">
               {product.images.slice(0, 4).map((img) => (
                 <div
@@ -188,8 +195,6 @@ export default function ProductDetailPage() {
                 </div>
               ))}
             </div>
-
-            {/* Khối ảnh chính bên phải */}
             <div className="relative w-full h-[500px] rounded-lg overflow-hidden bg-gray-50 group border-2 border-gray-300">
               <Image
                 src={selectedImage}
@@ -207,18 +212,15 @@ export default function ProductDetailPage() {
             <p className="text-gray-600 leading-relaxed">
               {product.productDescription || "Không có mô tả chi tiết cho sản phẩm này."}
             </p>
-
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-500">Tình trạng:</span>
               <span className={`text-sm font-medium ${product.unitsInStock > 0 ? "text-green-600" : "text-red-600"}`}>
                 {product.unitsInStock > 0 ? "Còn hàng" : "Hết hàng"}
               </span>
             </div>
-
             <div className="text-3xl font-bold text-indigo-600">
               {product.unitPrice.toLocaleString()} VND
             </div>
-
             <div className="space-y-2">
               <div>
                 <Label className="text-gray-700 font-medium">Số lượng tồn kho:</Label>
@@ -229,8 +231,6 @@ export default function ProductDetailPage() {
                 <span className="ml-2 text-gray-900">{product.quantityPerUnit || "Không xác định"}</span>
               </div>
             </div>
-
-            {/* Quantity Selector */}
             <div className="flex items-center gap-4">
               <span className="text-gray-700 font-medium">Số lượng:</span>
               <div className="flex items-center border rounded-lg overflow-hidden">
@@ -255,8 +255,6 @@ export default function ProductDetailPage() {
                 </button>
               </div>
             </div>
-
-            {/* Action Buttons */}
             <div className="flex gap-4">
               <Button
                 onClick={handleAddToCart}
@@ -288,7 +286,6 @@ export default function ProductDetailPage() {
                 </svg>
               </button>
             </div>
-
             <div className="flex flex-col items-center space-y-4 mb-6">
               <div className="relative w-40 h-40 rounded-lg overflow-hidden">
                 <Image
@@ -305,7 +302,6 @@ export default function ProductDetailPage() {
                 <p className="text-gray-600">Số lượng: {quantity}</p>
               </div>
             </div>
-
             <div className="flex justify-end gap-3">
               <Button
                 onClick={() => setShowModal(false)}
@@ -324,5 +320,6 @@ export default function ProductDetailPage() {
         </div>
       )}
     </main>
+    
   );
 }
