@@ -78,11 +78,11 @@ export default function ContactPage() {
                 chọn cách phù hợp nhất với bạn.
             </p>
             <div className="mb-4">
-                <p>0898 543 919</p>
-                <p>dhao30167@gmail.com</p>
+                <p>SĐT: 0898 543 919</p>
+                <p>Email: dhao30167@gmail.com</p>
             </div>
             <div className="mb-4">
-                <p>Phạm Hữu Lầu, Phường 6, Cao Lãnh, Đồng Tháp</p>
+                <p>Địa chỉ: Phạm Hữu Lầu, Phường 6, Cao Lãnh, Đồng Tháp</p>
             </div>
             <div className="mb-4">
                 <p>Giờ làm việc: 8:00 - 18:00, Thứ Hai - Thứ Sáu</p>
@@ -146,13 +146,13 @@ export default function ContactPage() {
             </div>
         </div>
 
-        <div className="mt-12 bg-gray-100 py-8">
+        <div className="mt-12 bg-gray-100 py-8 px-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
                 <h4 className="text-xl font-bold">Đăng Ký Nhận Tin</h4>
                 <p>Đăng ký để nhận bản tin và được giảm 20% cho lần mua đầu tiên</p>
             </div>
-            <div>
+            <div className="ml-auto">
                 <form
                 onSubmit={handleNewsletterSubmit}
                 className="flex flex-col md:flex-row gap-4 items-center"
@@ -163,7 +163,7 @@ export default function ContactPage() {
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
                     required
-                    className="w-full md:w-auto"
+                    className="w-full bg-white md:w-auto"
                 />
                 <Button type="submit" className="bg-red-500 hover:bg-red-600">
                     Đăng Ký

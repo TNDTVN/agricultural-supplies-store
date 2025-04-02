@@ -1,3 +1,6 @@
+import { Customer } from "./customer";
+import { Employee } from "./employee";
+import { OrderDetail } from "./orderdetails";
 export interface Order {
     orderID: number;
     customerID?: number;
@@ -10,4 +13,7 @@ export interface Order {
     shipCountry?: string;
     notes?: string;
     freight?: number;
+    customer?: Customer;
+    employee?: Employee;
+    orderDetails?: OrderDetail[];
 }

@@ -30,6 +30,9 @@ export default function AdminLayout({
         "/admin/category": "Quản lý danh mục",
         "/admin/product": "Quản lý sản phẩm",
         "/admin/supplier": "Quản lý nhà cung cấp",
+        "/admin/orders": "Quản lý hóa đơn",
+        "/admin/customer": "Quản lý khách hàng",
+        "/admin/employee": "Quản lý nhân viên",
         };
 
         return (

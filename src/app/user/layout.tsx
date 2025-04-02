@@ -48,7 +48,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const getPageTitle = (path: string) => {
     const titleMap: { [key: string]: string } = {
       "/user": "FarmTech - Trang chủ",
-      "/user/product": "chi tiết sản phẩm",
+      "/user/product": "Chi tiết sản phẩm",
+      "/user/contact": "Liên hệ",
+      "/user/cart": "Giỏ hàng",
     };
     return (
       titleMap[path] ||

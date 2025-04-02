@@ -5,4 +5,6 @@ export interface OrderDetail {
     unitPrice: number;
     quantity: number;
     discount: number;
+    order?: any;
+    product?: any;
 }
