@@ -27,7 +27,11 @@ const ColumnVisibilityToggle = ({ table }: { table: any }) => (
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
             {table.getAllColumns().filter((column: any) => column.getCanHide()).map((column: any) => (
-                <DropdownMenuCheckboxItem key={column.id} checked={column.getIsVisible()} onCheckedChange={(value: any) => column.toggleVisibility(!!value)}>
+                <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value: any) => column.toggleVisibility(!!value)}
+                >
                     {column.columnDef.header as string}
                 </DropdownMenuCheckboxItem>
             ))}
@@ -50,6 +54,7 @@ const PageSizeSelector = ({ pageSize, setPageSize }: { pageSize: number; setPage
         </DropdownMenu>
     );
 };
+
 export default function OrderPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -62,6 +67,8 @@ export default function OrderPage() {
     const [selectedOrder, setSelectedOrder] = useState<Order | undefined>(undefined);
     const [role, setRole] = useState<string | null>(null);
     const [accountID, setAccountID] = useState<number | null>(null);
+    const [generatingPDF, setGeneratingPDF] = useState<number | null>(null);
+    const [pdfBlob, setPdfBlob] = useState<{ [key: number]: Blob | null }>({}); // State để lưu blob theo orderID
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -80,22 +87,30 @@ export default function OrderPage() {
         if (role) headers["X-Role"] = role;
         if (accountID) headers["X-Account-ID"] = accountID.toString();
 
-        const response = await fetch(`http://localhost:8080/orders?page=${page}&size=${pageSize}${sortParam}`, { headers });
-        const data = await response.json();
-        console.log("Phản hồi từ API đơn hàng:", JSON.stringify(data, null, 2));
+        try {
+            const response = await fetch(`http://localhost:8080/orders?page=${page}&size=${pageSize}${sortParam}`, { headers });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Lỗi khi lấy danh sách đơn hàng: ${response.status} - ${errorText}`);
+            }
+            const data = await response.json();
+            const orders = data.content || [];
+            const ordersWithDetails = await Promise.all(
+                orders.map(async (order: Order) => {
+                    const detailsResponse = await fetch(`http://localhost:8080/orderdetails?orderID=${order.orderID}`);
+                    const detailsData = await detailsResponse.json();
+                    return { ...order, orderDetails: Array.isArray(detailsData) ? detailsData : [] };
+                })
+            );
 
-        const orders = data.content || [];
-        const ordersWithDetails = await Promise.all(
-            orders.map(async (order: Order) => {
-                const detailsResponse = await fetch(`http://localhost:8080/orderdetails?orderID=${order.orderID}`);
-                const detailsData = await detailsResponse.json();
-                return { ...order, orderDetails: Array.isArray(detailsData) ? detailsData : [] };
-            })
-        );
-
-        setOrders(ordersWithDetails);
-        setTotalPages(data.totalPages || 1);
+            setOrders(ordersWithDetails);
+            setTotalPages(data.totalPages || 1);
+        } catch (error) {
+            console.error("Lỗi fetchOrders:", error);
+            toast.error("Không thể tải danh sách đơn hàng!");
+        }
     };
+
     useEffect(() => {
         if (role !== null && accountID !== null) {
             fetchOrders(currentPage);
@@ -113,22 +128,27 @@ export default function OrderPage() {
         const url = searchTerm.trim()
             ? `http://localhost:8080/orders/search?keyword=${encodeURIComponent(searchTerm)}&page=1&size=${pageSize}${sortParam}`
             : `http://localhost:8080/orders?page=1&size=${pageSize}${sortParam}`;
-        const response = await fetch(url, { headers });
-        const data = await response.json();
-        console.log("Search API response:", JSON.stringify(data, null, 2));
 
-        const orders = data.content || [];
-        const ordersWithDetails = await Promise.all(
-            orders.map(async (order: Order) => {
-                const detailsResponse = await fetch(`http://localhost:8080/orderdetails?orderID=${order.orderID}`);
-                const detailsData = await detailsResponse.json();
-                return { ...order, orderDetails: Array.isArray(detailsData) ? detailsData : [] };
-            })
-        );
+        try {
+            const response = await fetch(url, { headers });
+            if (!response.ok) throw new Error("Lỗi khi tìm kiếm đơn hàng");
+            const data = await response.json();
+            const orders = data.content || [];
+            const ordersWithDetails = await Promise.all(
+                orders.map(async (order: Order) => {
+                    const detailsResponse = await fetch(`http://localhost:8080/orderdetails?orderID=${order.orderID}`);
+                    const detailsData = await detailsResponse.json();
+                    return { ...order, orderDetails: Array.isArray(detailsData) ? detailsData : [] };
+                })
+            );
 
-        setOrders(ordersWithDetails);
-        setTotalPages(data.totalPages || 1);
-        setCurrentPage(1);
+            setOrders(ordersWithDetails);
+            setTotalPages(data.totalPages || 1);
+            setCurrentPage(1);
+        } catch (error) {
+            console.error("Lỗi handleSearch:", error);
+            toast.error("Không thể tìm kiếm đơn hàng!");
+        }
     };
 
     const handlePageChange = (newPage: number) => {
@@ -145,35 +165,67 @@ export default function OrderPage() {
         setModalOpen(true);
     };
 
+    const handleExportInvoice = (order: Order) => {
+        setGeneratingPDF(order.orderID);
+    };
+
+    // Xử lý khi PDF được tạo xong
+    useEffect(() => {
+        if (generatingPDF && pdfBlob[generatingPDF]) {
+            const blob = pdfBlob[generatingPDF];
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `HoaDon_${generatingPDF}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.success("Xuất hóa đơn thành công!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
+            setGeneratingPDF(null);
+            setPdfBlob(prev => ({ ...prev, [generatingPDF]: null }));
+        }
+    }, [pdfBlob, generatingPDF]);
+
     const columns: ColumnDef<Order>[] = useMemo(() => [
-        { accessorFn: (_, index) => (currentPage - 1) * pageSize + index + 1, id: "stt", header: "STT", enableSorting: false },
-        { accessorKey: "orderID", header: "Mã Đơn Hàng", enableSorting: true },
+        {
+            accessorFn: (_, index) => (currentPage - 1) * pageSize + index + 1,
+            id: "stt",
+            header: "STT",
+            enableSorting: false,
+        },
+        {
+            accessorKey: "orderID",
+            header: "Mã Đơn Hàng",
+            enableSorting: true,
+        },
         {
             accessorFn: row => row.customer?.customerName || "Không xác định",
             id: "customerName",
             header: "Tên Khách Hàng",
-            enableSorting: true
+            enableSorting: false,
         },
         {
-            accessorFn: row => `${row.employee?.firstName || ''} ${row.employee?.lastName || ''}`.trim() || "Không xác định", 
+            accessorFn: row => `${row.employee?.firstName || ''} ${row.employee?.lastName || ''}`.trim() || "Không xác định",
             id: "employeeName",
             header: "Tên Nhân Viên",
-            enableSorting: true
+            enableSorting: false,
         },
         {
             accessorKey: "orderDate",
             header: "Ngày Đặt",
             cell: ({ row }) => new Date(row.original.orderDate).toLocaleDateString(),
-            enableSorting: true
+            enableSorting: true,
         },
         {
             accessorFn: row => row.orderDetails?.reduce((sum: number, detail) =>
-                sum + detail.unitPrice * detail.quantity * (1 - detail.discount), 0)
+                sum + (detail.unitPrice || 0) * (detail.quantity || 0) * (1 - (detail.discount || 0)), 0)
                 .toLocaleString('vi-VN', { minimumFractionDigits: 0 })
                 .replace(/\./g, ',') + " VND" || "0 VND",
             id: "totalAmount",
             header: "Tổng Số Tiền",
-            enableSorting: true
+            enableSorting: true,
         },
         {
             id: "actions",
@@ -186,31 +238,45 @@ export default function OrderPage() {
                     >
                         Chi tiết
                     </Button>
-                    <PDFDownloadLink
-                        document={<InvoicePDF order={{ ...row.original, orderDetails: row.original.orderDetails || [] } as Order & { orderDetails: OrderDetail[] }} />}
-                        fileName={`HoaDon_${row.original.orderID}.pdf`}>
-                        {({ loading, blob, url, error }) => (
-                            <Button
-                                className="bg-green-500 hover:bg-green-700"
-                                disabled={loading}
-                                onClick={() => {
-                                    if (!loading && !error && blob) {
-                                        toast.success("Xuất hóa đơn thành công!", {
-                                            position: "top-right",
-                                            autoClose: 3000,
-                                        });
-                                    }
-                                }}
-                            >
-                                {loading ? "Đang tạo..." : "Xuất hóa đơn"}
-                            </Button>
-                        )}
-                    </PDFDownloadLink>
+                    {generatingPDF === row.original.orderID ? (
+                        <PDFDownloadLink
+                            document={<InvoicePDF order={{ ...row.original, orderDetails: row.original.orderDetails || [] } as Order & { orderDetails: OrderDetail[] }} />}
+                            fileName={`HoaDon_${row.original.orderID}.pdf`}
+                        >
+                            {({ loading, blob, error }) => {
+                                if (!loading && blob && !error) {
+                                    setPdfBlob(prev => ({ ...prev, [row.original.orderID]: blob }));
+                                }
+                                return (
+                                    <Button
+                                        className="bg-green-500 hover:bg-green-700"
+                                        disabled={loading}
+                                        onClick={() => {
+                                            if (error) {
+                                                console.error("Lỗi tạo PDF:", error);
+                                                toast.error("Lỗi khi xuất hóa đơn!");
+                                                setGeneratingPDF(null);
+                                            }
+                                        }}
+                                    >
+                                        {loading ? "Đang tạo..." : "Xuất hóa đơn"}
+                                    </Button>
+                                );
+                            }}
+                        </PDFDownloadLink>
+                    ) : (
+                        <Button
+                            className="bg-green-500 hover:bg-green-700"
+                            onClick={() => handleExportInvoice(row.original)}
+                        >
+                            Xuất hóa đơn
+                        </Button>
+                    )}
                 </div>
             ),
             enableSorting: false,
         },
-    ], [currentPage, pageSize]);
+    ], [currentPage, pageSize, generatingPDF]);
 
     const table = useReactTable({
         data: orders,
@@ -226,7 +292,11 @@ export default function OrderPage() {
         <main className="p-4">
             <div className="mb-4 flex justify-between items-center">
                 <div className="w-1/2 flex items-center space-x-2">
-                    <Input placeholder="Tìm kiếm đơn hàng..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                    <Input
+                        placeholder="Tìm kiếm đơn hàng..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
                     <Button onClick={handleSearch}>Tìm</Button>
                 </div>
                 <div className="flex gap-2">
@@ -261,20 +331,36 @@ export default function OrderPage() {
                                 table.getRowModel().rows.map(row => (
                                     <TableRow key={row.id}>
                                         {row.getVisibleCells().map(cell => (
-                                            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                                            <TableCell key={cell.id}>
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
                                         ))}
                                     </TableRow>
                                 ))
                             ) : (
-                                <TableRow><TableCell colSpan={7} className="h-24 text-center">Không có dữ liệu</TableCell></TableRow>
+                                <TableRow>
+                                    <TableCell colSpan={7} className="h-24 text-center">
+                                        Không có dữ liệu
+                                    </TableCell>
+                                </TableRow>
                             )}
                         </TableBody>
                     </Table>
                 </div>
                 <div className="mt-4 flex justify-between items-center">
-                    <Button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>Trang trước</Button>
+                    <Button
+                        disabled={currentPage === 1}
+                        onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                        Trang trước
+                    </Button>
                     <span>Trang {currentPage} / {totalPages}</span>
-                    <Button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>Trang sau</Button>
+                    <Button
+                        disabled={currentPage === totalPages}
+                        onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                        Trang sau
+                    </Button>
                 </div>
             </div>
             <OrderModal isOpen={modalOpen} onClose={() => setModalOpen(false)} order={selectedOrder} />
