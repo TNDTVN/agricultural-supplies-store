@@ -43,7 +43,7 @@ const allItems = [
   { title: "Employee", url: "/admin/employee", icon: Users, roles: ["ADMIN"] },
   { title: "Customer", url: "/admin/customer", icon: UserCheck, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Order", url: "/admin/orders", icon: ShoppingCart, roles: ["ADMIN", "EMPLOYEE"] },
-  { title: "Approved Invoice", url: "#", icon: FileCheck, roles: ["ADMIN", "EMPLOYEE"] },
+  { title: "Approved Invoice", url: "/admin/approvedinvoice", icon: FileCheck, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Statistics", url: "#", icon: BarChart3, roles: ["ADMIN", "EMPLOYEE"] },
   {
     title: "User Account",

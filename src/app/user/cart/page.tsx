@@ -193,7 +193,7 @@ const CartPage = () => {
     return (
         <div className="max-w-7xl mx-auto p-4 md:p-6">
             {cartItems.length === 0 ? (
-                <Card className="p-6 text-center">
+                <Card className="p-6 text-center min-h-[80vh]">
                     <p className="text-gray-500">Giỏ hàng trống</p>
                     <Button className="mt-4" variant="outline">
                         Tiếp tục mua sắm

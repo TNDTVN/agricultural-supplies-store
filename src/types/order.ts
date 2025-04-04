@@ -16,4 +16,5 @@ export interface Order {
     customer?: Customer;
     employee?: Employee;
     orderDetails?: OrderDetail[];
+    cancelled: boolean;
 }

@@ -231,14 +231,14 @@ export default function OrderModal({ isOpen, onClose, order }: OrderModalProps) 
             </div>
             </ScrollArea>
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-2">
             <Button
                 variant="default"
                 onClick={() => console.log("Xuất hóa đơn cho đơn hàng:", order.orderID)}
             >
                 Xuất hóa đơn
             </Button>
-            <Button variant="outline" onClick={onClose}>
+            <Button className="mb-2" variant="outline" onClick={onClose}>
                 Đóng
             </Button>
             </div>
