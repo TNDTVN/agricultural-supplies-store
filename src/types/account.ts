@@ -8,5 +8,5 @@ export interface Account {
     createdDate: string;
     role: string;
     tokenCode?: string;
-    locked?: boolean; // Thay isLocked thành locked
+    locked?: boolean;
 }

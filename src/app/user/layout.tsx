@@ -51,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "/user/product": "Chi tiết sản phẩm",
       "/user/contact": "Liên hệ",
       "/user/cart": "Giỏ hàng",
+      "/user/notifications": "Thông báo",
     };
     return (
       titleMap[path] ||
@@ -277,12 +278,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <h1 className="text-2xl font-bold">FarmTech</h1>
               </div>
               <Link href={"/user"}><button className="hover:underline">Trang chủ</button></Link>
-              <button className="hover:underline">Cửa hàng</button>
+              <Link href={"/user/shop"}><button className="hover:underline">Cửa hàng</button></Link>
               {isLoggedIn && (
                 <>
-                <Link href={"/user/cart"}>
-                  <button className="hover:underline">Giỏ hàng</button>
-                </Link>
+                  <Link href={"/user/cart"}>
+                    <button className="hover:underline">Giỏ hàng</button>
+                  </Link>
                   <button className="hover:underline">Lịch sử mua hàng</button>
                   <button className="hover:underline">Sản phẩm đã mua</button>
                 </>
@@ -319,6 +320,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
                           Profile
                         </button>
+                        <Link href={"/user/notifications"}>
+                          <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Thông Báo</button>
+                        </Link>
                         <button
                           onClick={() => {
                             setIsChangePasswordModalOpen(true);

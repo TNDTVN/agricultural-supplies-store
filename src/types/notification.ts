@@ -3,7 +3,9 @@ export interface Notification {
     title: string;
     content: string;
     senderID: number;
-    receiverID: number;
-    createdDate: string; // ISO Date String
-    isRead: boolean;
+    receiverID?: number | null;
+    createdDate: string;
+    read: boolean;
+    senderName?: string;
+    receiverName?: string;
 }

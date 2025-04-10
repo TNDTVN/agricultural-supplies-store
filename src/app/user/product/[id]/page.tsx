@@ -157,7 +157,7 @@ export default function ProductDetailPage() {
             <li className="flex items-center">
               <span className="mx-2">/</span>
               <Link
-                href={`/user/categories?categoryId=${product.categoryID}`}
+                href={`/user/shop?categoryId=${product.categoryID}`}
                 className="hover:text-indigo-600 transition-colors"
               >
                 {product.category?.categoryName || "Danh mục"}

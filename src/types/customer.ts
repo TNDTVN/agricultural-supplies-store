@@ -8,6 +8,6 @@ export interface Customer {
     country?: string;
     phone?: string;
     email: string;
-    accountID: number;
+    accountID?: number;
     locked?: boolean;
 }

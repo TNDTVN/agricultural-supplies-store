@@ -33,6 +33,9 @@ export default function AdminLayout({
         "/admin/orders": "Quản lý hóa đơn",
         "/admin/customer": "Quản lý khách hàng",
         "/admin/employee": "Quản lý nhân viên",
+        "/admin/notifications": "Thông báo",
+        "/admin/approvedinvoice": "Duyệt hóa đơn",
+        "/admin/statistics": "Thống kê",
         };
 
         return (

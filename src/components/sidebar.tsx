@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   BarChart3,
+  Bell,
   ChevronDown,
   Eye,
   EyeOff,
@@ -29,7 +30,7 @@ import {
   User2Icon,
   UserCheck,
   Users,
-  Users2,
+  Users2
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -44,7 +45,8 @@ const allItems = [
   { title: "Customer", url: "/admin/customer", icon: UserCheck, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Order", url: "/admin/orders", icon: ShoppingCart, roles: ["ADMIN", "EMPLOYEE"] },
   { title: "Approved Invoice", url: "/admin/approvedinvoice", icon: FileCheck, roles: ["ADMIN", "EMPLOYEE"] },
-  { title: "Statistics", url: "#", icon: BarChart3, roles: ["ADMIN", "EMPLOYEE"] },
+  { title: "Statistics", url: "/admin/statistics", icon: BarChart3, roles: ["ADMIN", "EMPLOYEE"] },
+  { title: "Notifications", url: "/admin/notifications", icon: Bell, roles: ["ADMIN", "EMPLOYEE"] },
   {
     title: "User Account",
     url: "#",
