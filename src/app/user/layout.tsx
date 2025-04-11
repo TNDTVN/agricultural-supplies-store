@@ -52,6 +52,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "/user/contact": "Liên hệ",
       "/user/cart": "Giỏ hàng",
       "/user/notifications": "Thông báo",
+      "/user/shop" : "Cửa hàng",
+      "/user/purchased-products": "Sản phẩm đã mua",
     };
     return (
       titleMap[path] ||
@@ -251,12 +253,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      toast.info(`Tìm kiếm: ${searchQuery}`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    }
+      if (searchQuery.trim()) {
+          router.push(`/user/shop?keyword=${encodeURIComponent(searchQuery.trim())}`);
+          setSearchQuery("");
+      }
   };
 
   return (
@@ -285,7 +285,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <button className="hover:underline">Giỏ hàng</button>
                   </Link>
                   <button className="hover:underline">Lịch sử mua hàng</button>
-                  <button className="hover:underline">Sản phẩm đã mua</button>
+                  <Link href="/user/purchased-products">
+                    <button className="hover:underline">Sản phẩm đã mua</button>
+                  </Link>
                 </>
               )}
               <Link href={"/user/contact"}><button className="hover:underline">Liên hệ</button></Link>

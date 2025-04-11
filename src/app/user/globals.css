@@ -111,35 +111,6 @@ body {
     @apply bg-background text-foreground;
   }
 }
-/* CSS cho jQuery UI Slider */
-.ui-slider {
-  position: relative;
-  text-align: left;
-  background: #e2e8f0;
-  border: none;
-  height: 8px;
-  border-radius: 4px;
-}
-
-.ui-slider .ui-slider-handle {
-  position: absolute;
-  z-index: 2;
-  width: 16px;
-  height: 16px;
-  background: #dc2626;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  top: -4px;
-}
-
-.ui-slider .ui-slider-range {
-  position: absolute;
-  z-index: 1;
-  height: 8px;
-  background: #dc2626;
-  border-radius: 4px;
-}
 
 /* CSS cho sản phẩm */
 .product-grid {

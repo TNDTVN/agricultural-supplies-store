@@ -8,8 +8,9 @@ import { Product } from "@/types/product";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 interface ProductWithImages extends Product {
     images: ImageType[];
@@ -28,20 +29,32 @@ export default function Shop() {
 
     const productsPerPage = 12;
     const searchParams = useSearchParams();
+    const router = useRouter();
 
     useEffect(() => {
         fetchCategories();
         fetchProducts();
 
         const categoryIdFromUrl = searchParams.get("categoryId");
+        const keywordFromUrl = searchParams.get("keyword");
+        const maxPriceFromUrl = searchParams.get("maxPrice");
+
         if (categoryIdFromUrl) {
         setSelectedCategory(categoryIdFromUrl);
+        }
+        if (keywordFromUrl) {
+        setSearchQuery(decodeURIComponent(keywordFromUrl));
+        } else {
+        setSearchQuery("");
+        }
+        if (maxPriceFromUrl && !isNaN(Number(maxPriceFromUrl))) {
+        setPriceRange(Number(maxPriceFromUrl));
         }
     }, [searchParams]);
 
     useEffect(() => {
         filterAndSearchProducts(currentPage);
-    }, [selectedCategory, priceRange, currentPage]);
+    }, [selectedCategory, priceRange, currentPage, searchQuery]);
 
     const fetchProducts = async () => {
         try {
@@ -49,11 +62,14 @@ export default function Shop() {
         const data = await response.json();
         setProducts(data);
         const prices = data.map((p: Product) => p.unitPrice);
-        const min = Math.min(...prices);
-        const max = Math.max(...prices);
+        const min = prices.length > 0 ? Math.min(...prices) : 0;
+        const max = prices.length > 0 ? Math.max(...prices) : 10000000;
         setMinPrice(min);
         setMaxPrice(max);
-        setPriceRange(max);
+        if (!searchParams.get("maxPrice")) {
+            setPriceRange(max);
+        }
+        setTotalPages(Math.ceil(data.length / productsPerPage));
         } catch (error) {
         console.error("Lỗi khi tải sản phẩm:", error);
         }
@@ -73,7 +89,7 @@ export default function Shop() {
         try {
         const params = new URLSearchParams();
         if (selectedCategory !== "*") params.append("categoryId", selectedCategory);
-        if (searchQuery) params.append("keyword", searchQuery);
+        if (searchQuery.trim()) params.append("keyword", searchQuery.trim());
         params.append("minPrice", minPrice.toString());
         params.append("maxPrice", priceRange.toString());
         params.append("page", page.toString());
@@ -90,6 +106,20 @@ export default function Shop() {
 
     const handleSearch = () => {
         setCurrentPage(1);
+        const params = new URLSearchParams();
+        if (searchQuery.trim()) {
+        params.append("keyword", encodeURIComponent(searchQuery.trim()));
+        } else {
+        toast.info("Đã xóa từ khóa tìm kiếm. Hiển thị tất cả sản phẩm.", {
+            position: "top-right",
+            autoClose: 3000,
+        });
+        }
+        if (selectedCategory !== "*") {
+        params.append("categoryId", selectedCategory);
+        }
+        params.append("maxPrice", priceRange.toString());
+        router.push(`/user/shop?${params.toString()}`);
         filterAndSearchProducts(1);
     };
 
@@ -99,9 +129,7 @@ export default function Shop() {
 
     return (
         <main className="flex flex-col md:flex-row gap-8 px-4 md:px-8 lg:px-16 py-8">
-        {/* Khối bên trái */}
         <div className="w-full md:w-1/4 space-y-6">
-            {/* Danh mục sản phẩm */}
             <div className="bg-white p-4 shadow rounded">
             <h3 className="font-bold text-lg mb-4">Danh mục sản phẩm</h3>
             <ul className="space-y-2">
@@ -119,7 +147,9 @@ export default function Shop() {
                 <li key={category.categoryID}>
                     <button
                     className={`w-full text-left p-2 hover:bg-red-50 hover:text-red-500 rounded ${
-                        selectedCategory === category.categoryID.toString() ? "bg-red-50 text-red-500 font-medium" : ""
+                        selectedCategory === category.categoryID.toString()
+                        ? "bg-red-50 text-red-500 font-medium"
+                        : ""
                     }`}
                     onClick={() => setSelectedCategory(category.categoryID.toString())}
                     >
@@ -130,7 +160,6 @@ export default function Shop() {
             </ul>
             </div>
 
-            {/* Lọc theo giá */}
             <div className="bg-white p-4 shadow rounded">
             <h3 className="font-bold text-lg mb-4">Lọc theo giá</h3>
             <div className="space-y-4">
@@ -153,9 +182,7 @@ export default function Shop() {
             </div>
         </div>
 
-        {/* Khối bên phải */}
         <div className="w-full md:w-3/4">
-            {/* Thanh tìm kiếm và phân trang trên */}
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <div className="flex w-full md:w-1/2 gap-2">
                 <input
@@ -172,7 +199,7 @@ export default function Shop() {
                 Tìm
                 </Button>
             </div>
-            
+
             {totalPages > 1 && (
                 <div className="flex gap-2">
                 <Button
@@ -197,7 +224,11 @@ export default function Shop() {
                     <Button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={currentPage === pageNum ? "bg-red-500 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"}
+                        className={
+                        currentPage === pageNum
+                            ? "bg-red-500 text-white"
+                            : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                        }
                     >
                         {pageNum}
                     </Button>
@@ -214,7 +245,6 @@ export default function Shop() {
             )}
             </div>
 
-            {/* Danh sách sản phẩm */}
             {products.length > 0 ? (
             <motion.div
                 className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4"
@@ -245,7 +275,9 @@ export default function Shop() {
                                 priority
                             />
                             </div>
-                            <h2 className="mt-2 text-sm font-semibold line-clamp-2">{product.productName}</h2>
+                            <h2 className="mt-2 text-sm font-semibold line-clamp-2">
+                            {product.productName}
+                            </h2>
                             <p className="text-red-500 font-bold text-sm mt-1">
                             {product.unitPrice.toLocaleString()} VND
                             </p>
@@ -270,7 +302,6 @@ export default function Shop() {
             </div>
             )}
 
-            {/* Phân trang dưới */}
             {totalPages > 1 && (
             <div className="flex justify-start mt-8">
                 <div className="flex gap-2">
@@ -296,7 +327,11 @@ export default function Shop() {
                     <Button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={currentPage === pageNum ? "bg-red-500 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"}
+                        className={
+                        currentPage === pageNum
+                            ? "bg-red-500 text-white"
+                            : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                        }
                     >
                         {pageNum}
                     </Button>
