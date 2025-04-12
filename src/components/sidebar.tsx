@@ -54,7 +54,7 @@ const allItems = [
     roles: ["ADMIN", "EMPLOYEE"],
     subItems: [
       { title: "Change Password", url: "#", icon: Key },
-      { title: "Edit Account Info", url: "#", icon: User2Icon },
+      { title: "Edit Account Info", url: "/admin/profile", icon: User2Icon },
     ],
   },
 ];

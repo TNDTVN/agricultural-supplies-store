@@ -54,6 +54,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "/user/notifications": "Thông báo",
       "/user/shop" : "Cửa hàng",
       "/user/purchased-products": "Sản phẩm đã mua",
+      "/user/history": "Lịch sử mua hàng",
+      "/user/profile": "Thông tin cá nhân"
     };
     return (
       titleMap[path] ||
@@ -284,7 +286,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Link href={"/user/cart"}>
                     <button className="hover:underline">Giỏ hàng</button>
                   </Link>
-                  <button className="hover:underline">Lịch sử mua hàng</button>
+                  <Link href="/user/history">
+                    <button className="hover:underline">Lịch sử mua hàng</button>
+                  </Link>
                   <Link href="/user/purchased-products">
                     <button className="hover:underline">Sản phẩm đã mua</button>
                   </Link>
@@ -319,9 +323,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-20">
                     {isLoggedIn ? (
                       <>
-                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                          Profile
-                        </button>
+                        <Link href="/user/profile">
+                          <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Thông tin cá nhân</button>
+                        </Link>
                         <Link href={"/user/notifications"}>
                           <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Thông Báo</button>
                         </Link>

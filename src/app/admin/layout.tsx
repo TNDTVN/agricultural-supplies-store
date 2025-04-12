@@ -36,6 +36,7 @@ export default function AdminLayout({
         "/admin/notifications": "Thông báo",
         "/admin/approvedinvoice": "Duyệt hóa đơn",
         "/admin/statistics": "Thống kê",
+        "/admin/profile": "Thông tin nhân viên",
         };
 
         return (

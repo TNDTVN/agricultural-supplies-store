@@ -6,7 +6,7 @@ export interface Order {
     customerID?: number;
     employeeID?: number;
     orderDate: string; // ISO Date String
-    shippedDate?: string;
+    shippedDate?: string | null;
     shipAddress?: string;
     shipCity?: string;
     shipPostalCode?: string;
