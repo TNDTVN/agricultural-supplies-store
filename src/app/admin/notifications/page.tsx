@@ -75,17 +75,13 @@ export default function Notifications() {
             toast.error("Bạn cần đăng nhập để gửi thông báo", { position: "top-right", autoClose: 3000 });
             return;
         }
-        if (role !== "ADMIN") {
-            toast.error("Chỉ admin mới có thể gửi thông báo", { position: "top-right", autoClose: 3000 });
-            return;
-        }
 
         const notification: Notification = {
             notificationID: 0,
             title,
             content,
             senderID: accountID,
-            receiverID: receiverID === "all" || receiverID === "" ? null : parseInt(receiverID), // Nếu không chọn hoặc chọn "all", receiverID = null
+            receiverID: receiverID === "all" || receiverID === "" ? null : parseInt(receiverID),
             createdDate: new Date().toISOString(),
             read: false,
         };
@@ -101,7 +97,7 @@ export default function Notifications() {
             setTitle("");
             setContent("");
             setReceiverID("");
-            setCurrentPage(1); // Quay về trang đầu để hiển thị thông báo mới
+            setCurrentPage(1);
             fetchNotifications(accountID, role);
         } catch (err: any) {
             toast.error(err.message, { position: "top-right", autoClose: 3000 });
@@ -117,7 +113,7 @@ export default function Notifications() {
                 <p className="text-gray-600 mt-2">Gửi và quản lý thông báo đến khách hàng</p>
             </div>
 
-            {role === "ADMIN" && (
+            {(role === "ADMIN" || role === "EMPLOYEE") && (
                 <Card className="shadow-lg">
                     <CardHeader className="border-b">
                         <CardTitle className="text-xl">Gửi Thông Báo Mới</CardTitle>
@@ -205,7 +201,7 @@ export default function Notifications() {
                             <TableHeader className="bg-gray-50">
                                 <TableRow>
                                     <TableHead className="w-[20%]">Tiêu đề</TableHead>
-                                    <TableHead className="w-[30%]">Nội dung</TableHead>
+                                    <TableHead className="w-[40%]">Nội dung</TableHead>
                                     <TableHead>Người gửi</TableHead>
                                     <TableHead>Người nhận</TableHead>
                                     <TableHead className="text-right">Ngày gửi</TableHead>
@@ -218,8 +214,11 @@ export default function Notifications() {
                                             <TableCell className="font-medium max-w-[200px] truncate">
                                                 {stripHtml(notification.title)}
                                             </TableCell>
-                                            <TableCell className="max-w-[300px] line-clamp-2">
-                                                <div dangerouslySetInnerHTML={{ __html: notification.content }} />
+                                            <TableCell className="max-w-[400px] max-h-[150px] overflow-y-auto">
+                                                <div
+                                                    dangerouslySetInnerHTML={{ __html: notification.content }}
+                                                    className="prose prose-sm"
+                                                />
                                             </TableCell>
                                             <TableCell>
                                                 {notification.senderName || `ID: ${notification.senderID}`}

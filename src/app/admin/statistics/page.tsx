@@ -77,25 +77,25 @@ export default function Statistics() {
 
     const fetchStatistics = async () => {
         try {
-        setLoading(true);
-        let url = "http://localhost:8080/orders/statistics";
-        if (role !== "ADMIN" && accountID) {
-            url += `?employeeID=${accountID}`;
-        }
+            setLoading(true);
+            let url = "http://localhost:8080/orders/statistics";
+            if (role !== "ADMIN" && accountID) {
+                url += `?accountID=${accountID}`;
+            }
 
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error("Không thể lấy dữ liệu thống kê");
-        }
-        const data: StatsData = await response.json();
-        setStats(data);
-        setFilteredStats(data);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Không thể lấy dữ liệu thống kê");
+            }
+            const data: StatsData = await response.json();
+            setStats(data);
+            setFilteredStats(data);
         } catch (err) {
-        const error = err as Error;
-        setError(error.message);
-        toast.error(error.message, { position: "top-right", autoClose: 3000 });
+            const error = err as Error;
+            setError(error.message);
+            toast.error(error.message, { position: "top-right", autoClose: 3000 });
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     };
 
