@@ -198,7 +198,7 @@ export default function ProfilePage() {
                                     <AvatarImage
                                         src={
                                             previewImage ||
-                                            (account.profileImage && account.profileImage !== "profile.jpg"
+                                            (account.profileImage
                                                 ? `http://localhost:8080/images/${account.profileImage}`
                                                 : "/images/default-avatar.png")
                                         }
