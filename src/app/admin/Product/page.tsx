@@ -117,7 +117,23 @@ export default function ProductIndex() {
         { accessorKey: "productID", header: "ID", enableSorting: true },
         { accessorKey: "productName", header: "Tên sản phẩm", enableSorting: true },
         { accessorKey: "unitPrice", header: "Giá", cell: ({ row }) => `${row.original.unitPrice.toLocaleString()} VND`, enableSorting: true },
-        { accessorKey: "productDescription", header: "Mô tả", cell: ({ row }) => row.original.productDescription || "Không có mô tả", enableSorting: false },
+        {
+            accessorKey: "productDescription",
+            header: "Mô tả",
+            cell: ({ row }) => {
+                const description = row.original.productDescription || "Không có mô tả";
+                const maxLength = 50;
+                const truncated = description.length > maxLength
+                ? description.substring(0, maxLength) + "..."
+                : description;
+                return (
+                <div title={description} className="truncate">
+                    {truncated}
+                </div>
+                );
+            },
+            enableSorting: false,
+        },
         {
             id: "actions",
             header: "Hành động",

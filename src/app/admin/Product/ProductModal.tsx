@@ -228,11 +228,11 @@ export default function ProductModal({ isOpen, onClose, mode, product, onSave }:
                             {currentMode !== "detail" && (
                                 <div>
                                     <Label className="font-medium">Ảnh sản phẩm</Label>
-                                    <Input 
-                                        type="file" 
-                                        multiple 
-                                        accept="image/*" 
-                                        onChange={handleImageChange} 
+                                    <Input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={handleImageChange}
                                         disabled={currentMode !== "add" && currentMode !== "edit"}
                                         className="border-gray-300"
                                     />
@@ -284,13 +284,14 @@ export default function ProductModal({ isOpen, onClose, mode, product, onSave }:
                                     </select>
                                 )}
                             </div>
-                            <div>
-                                <Label className="font-medium">Ngừng kinh doanh</Label>
-                                {currentMode === "detail" ? (
+                            {currentMode !== "add" && (
+                                <div>
+                                    <Label className="font-medium">Ngừng kinh doanh</Label>
+                                    {currentMode === "detail" ? (
                                     <p className={formData.discontinued ? "text-red-500" : "text-green-500"}>
                                         {formData.discontinued ? "Ngừng kinh doanh" : "Đang kinh doanh"}
                                     </p>
-                                ) : (
+                                    ) : (
                                     <input
                                         type="checkbox"
                                         name="discontinued"
@@ -298,8 +299,9 @@ export default function ProductModal({ isOpen, onClose, mode, product, onSave }:
                                         onChange={(e) => setFormData(prev => ({ ...prev, discontinued: e.target.checked }))}
                                         className="mt-1"
                                     />
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            )}
                             {currentMode === "detail" && previewImages.length > 0 && (
                                 <div>
                                     <Label className="font-medium">Ảnh sản phẩm</Label>
