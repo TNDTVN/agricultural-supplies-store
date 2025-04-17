@@ -270,7 +270,7 @@ export default function SupplierIndex() {
         });
         if (!response.ok) {
             const errorText = await response.text();
-            toast.success("Lỗi: " + errorText, {
+            toast.error("Lỗi: " + errorText, {
                 position: "top-right",
                 autoClose: 3000,
             });

@@ -430,32 +430,42 @@ export default function CategoryIndex() {
                         {error && <div className="text-red-500">{error}</div>}
                         <div>
                             <label className="block font-semibold">Tên loại sản phẩm</label>
-                            <Input
-                                value={selectedCategory.categoryName || ""}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                    setSelectedCategory({
-                                        ...selectedCategory,
-                                        categoryName: e.target.value,
-                                    })
-                                }
-                                placeholder="Nhập tên loại sản phẩm"
-                                disabled={modalMode === "detail"}
-                                required
-                            />
+                            {modalMode === "detail" ? (
+                                <p className="text-gray-800 font-medium">
+                                    {selectedCategory.categoryName || "Không có dữ liệu"}
+                                </p>
+                            ) : (
+                                <Input
+                                    value={selectedCategory.categoryName || ""}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                        setSelectedCategory({
+                                            ...selectedCategory,
+                                            categoryName: e.target.value,
+                                        })
+                                    }
+                                    placeholder="Nhập tên loại sản phẩm"
+                                    required
+                                />
+                            )}
                         </div>
                         <div>
                             <label className="block font-semibold">Mô tả</label>
-                            <Input
-                                value={selectedCategory.description || ""}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                    setSelectedCategory({
-                                        ...selectedCategory,
-                                        description: e.target.value,
-                                    })
-                                }
-                                placeholder="Nhập mô tả (không bắt buộc)"
-                                disabled={modalMode === "detail"}
-                            />
+                            {modalMode === "detail" ? (
+                                <p className="text-gray-800 font-medium">
+                                    {selectedCategory.description || "Không có mô tả"}
+                                </p>
+                            ) : (
+                                <Input
+                                    value={selectedCategory.description || ""}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                        setSelectedCategory({
+                                            ...selectedCategory,
+                                            description: e.target.value,
+                                        })
+                                    }
+                                    placeholder="Nhập mô tả (không bắt buộc)"
+                                />
+                            )}
                         </div>
                     </div>
                     <DialogFooter>
