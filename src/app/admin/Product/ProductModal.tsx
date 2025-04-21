@@ -114,12 +114,7 @@ export default function ProductModal({ isOpen, onClose, mode, product, onSave }:
         setError(null);
 
         try {
-            let imageNames: string[] = [];
-
-            // Nếu ở chế độ chỉnh sửa và không chọn ảnh mới, giữ danh sách ảnh cũ
-            if (currentMode === "edit" && selectedImages.length === 0 && product?.images) {
-                imageNames = product.images.map(img => img.imageName);
-            }
+            let imageNames: string[] | undefined = undefined;
 
             // Nếu có ảnh mới, tải lên và lấy danh sách tên ảnh mới
             if (selectedImages.length > 0) {
@@ -131,11 +126,15 @@ export default function ProductModal({ isOpen, onClose, mode, product, onSave }:
                 });
                 if (!uploadRes.ok) throw new Error("Failed to upload images");
                 imageNames = await uploadRes.json();
+            } else if (currentMode === "edit" && product?.images) {
+                // Nếu ở chế độ chỉnh sửa và không chọn ảnh mới, gửi danh sách ảnh cũ
+                imageNames = product.images.map(img => img.imageName);
             }
+            // Nếu không có ảnh mới và không có ảnh cũ, imageNames vẫn là undefined
 
             const productData = {
                 ...formData,
-                imageNames,
+                imageNames, // Chỉ gửi imageNames nếu có giá trị
             };
             const url = currentMode === "add"
                 ? "http://localhost:8080/products/add"
@@ -294,19 +293,26 @@ export default function ProductModal({ isOpen, onClose, mode, product, onSave }:
                             </div>
                             {currentMode !== "add" && (
                                 <div>
-                                    <Label className="font-medium">Ngừng kinh doanh</Label>
+                                    <Label className="font-medium">Trạng thái kinh doanh</Label>
                                     {currentMode === "detail" ? (
                                         <p className={formData.discontinued ? "text-red-500" : "text-green-500"}>
                                             {formData.discontinued ? "Ngừng kinh doanh" : "Đang kinh doanh"}
                                         </p>
                                     ) : (
-                                        <input
-                                            type="checkbox"
+                                        <select
                                             name="discontinued"
-                                            checked={formData.discontinued}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, discontinued: e.target.checked }))}
-                                            className="mt-1"
-                                        />
+                                            value={formData.discontinued ? "true" : "false"}
+                                            onChange={(e) =>
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    discontinued: e.target.value === "true",
+                                                }))
+                                            }
+                                            className="p-2 border rounded w-full border-gray-300 focus:border-blue-500"
+                                        >
+                                            <option value="false">Đang kinh doanh</option>
+                                            <option value="true">Ngừng kinh doanh</option>
+                                        </select>
                                     )}
                                 </div>
                             )}

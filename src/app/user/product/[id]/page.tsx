@@ -64,6 +64,14 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
+    if (product!.discontinued) {
+      toast.error("Sản phẩm đã ngừng kinh doanh!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
     if (quantity > product!.unitsInStock) {
       toast.error("Số lượng sản phẩm không đủ!", {
         position: "top-right",
@@ -214,8 +222,20 @@ export default function ProductDetailPage() {
             </p>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-500">Tình trạng:</span>
-              <span className={`text-sm font-medium ${product.unitsInStock > 0 ? "text-green-600" : "text-red-600"}`}>
-                {product.unitsInStock > 0 ? "Còn hàng" : "Hết hàng"}
+              <span
+                className={`text-sm font-medium ${
+                  product.discontinued
+                    ? "text-red-600"
+                    : product.unitsInStock > 0
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
+                {product.discontinued
+                  ? "Ngừng kinh doanh"
+                  : product.unitsInStock > 0
+                  ? "Còn hàng"
+                  : "Hết hàng"}
               </span>
             </div>
             <div className="text-3xl font-bold text-indigo-600">
@@ -259,7 +279,7 @@ export default function ProductDetailPage() {
               <Button
                 onClick={handleAddToCart}
                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition-all duration-200"
-                disabled={product.unitsInStock === 0}
+                disabled={product.unitsInStock === 0 || product.discontinued}
               >
                 Thêm vào giỏ hàng
               </Button>
