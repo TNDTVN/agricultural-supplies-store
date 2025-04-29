@@ -150,6 +150,16 @@ export default function Shop() {
         router.push(`/user/shop?${params.toString()}`);
     };
 
+    const handleCategoryChange = (categoryId: string) => {
+        setSelectedCategory(categoryId);
+        const params = new URLSearchParams();
+        if (searchQuery.trim()) {
+            params.append("keyword", encodeURIComponent(searchQuery.trim()));
+        }
+        params.append("maxPrice", priceRange.toString());
+        router.push(`/user/shop?${params.toString()}`);
+        filterAndSearchProducts(1);
+    };
     return (
         <main className="flex flex-col md:flex-row gap-8 px-4 md:px-8 lg:px-16 py-8">
         <div className="w-full md:w-1/4 space-y-6">
@@ -176,28 +186,18 @@ export default function Shop() {
                 </button>
                 </li>
                 {categories.map((category) => (
-                <li key={category.categoryID}>
-                    <button
-                    className={`w-full text-left p-2 hover:bg-red-50 hover:text-red-500 rounded ${
-                        selectedCategory === category.categoryID.toString()
-                        ? "bg-red-50 text-red-500 font-medium"
-                        : ""
-                    }`}
-                    onClick={() => {
-                        setSelectedCategory(category.categoryID.toString());
-                        const params = new URLSearchParams();
-                        params.append("categoryId", category.categoryID.toString());
-                        if (searchQuery.trim()) {
-                        params.append("keyword", encodeURIComponent(searchQuery.trim()));
-                        }
-                        params.append("maxPrice", priceRange.toString());
-                        router.push(`/user/shop?${params.toString()}`);
-                        filterAndSearchProducts(1);
-                    }}
-                    >
-                    {category.categoryName}
-                    </button>
-                </li>
+                    <li key={category.categoryID}>
+                        <button
+                            className={`w-full text-left p-2 hover:bg-red-50 hover:text-red-500 rounded ${
+                                selectedCategory === category.categoryID.toString()
+                                ? "bg-red-50 text-red-500 font-medium"
+                                : ""
+                            }`}
+                            onClick={() => handleCategoryChange(category.categoryID.toString())}
+                        >
+                            {category.categoryName}
+                        </button>
+                    </li>
                 ))}
             </ul>
             </div>
