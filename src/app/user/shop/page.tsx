@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useAuth } from "../layout";
 
 interface ProductWithImages extends Product {
     images: ImageType[];
@@ -20,7 +21,6 @@ export default function Shop() {
     const [products, setProducts] = useState<ProductWithImages[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>("*");
-    const [searchQuery, setSearchQuery] = useState<string>("");
     const [priceRange, setPriceRange] = useState<number>(0);
     const [minPrice, setMinPrice] = useState<number>(0);
     const [maxPrice, setMaxPrice] = useState<number>(10000000);
@@ -30,27 +30,23 @@ export default function Shop() {
     const productsPerPage = 12;
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { searchQuery, setSearchQuery } = useAuth();
+
+    // Update selectedCategory based on URL query parameter
+    useEffect(() => {
+        const categoryId = searchParams.get("categoryId");
+        if (categoryId && categoryId !== selectedCategory) {
+        setSelectedCategory(categoryId);
+        } else if (!categoryId && selectedCategory !== "*") {
+        setSelectedCategory("*");
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         fetchCategories();
         fetchProducts();
-
-        const categoryIdFromUrl = searchParams.get("categoryId");
-        const keywordFromUrl = searchParams.get("keyword");
-        const maxPriceFromUrl = searchParams.get("maxPrice");
-
-        if (categoryIdFromUrl) {
-        setSelectedCategory(categoryIdFromUrl);
-        }
-        if (keywordFromUrl) {
-        setSearchQuery(decodeURIComponent(keywordFromUrl));
-        } else {
-        setSearchQuery("");
-        }
-        if (maxPriceFromUrl && !isNaN(Number(maxPriceFromUrl))) {
-        setPriceRange(Number(maxPriceFromUrl));
-        }
-    }, [searchParams]);
+        filterAndSearchProducts(1);
+    }, []);
 
     useEffect(() => {
         filterAndSearchProducts(currentPage);
@@ -87,20 +83,35 @@ export default function Shop() {
 
     const filterAndSearchProducts = async (page: number) => {
         try {
-        const params = new URLSearchParams();
-        if (selectedCategory !== "*") params.append("categoryId", selectedCategory);
-        if (searchQuery.trim()) params.append("keyword", searchQuery.trim());
-        params.append("minPrice", minPrice.toString());
-        params.append("maxPrice", priceRange.toString());
-        params.append("page", page.toString());
-        params.append("size", productsPerPage.toString());
+            const params = new URLSearchParams();
+            if (selectedCategory !== "*") {
+            params.append("categoryId", selectedCategory);
+            }
+            if (searchQuery.trim()) {
+            const encodedKeyword = encodeURIComponent(searchQuery.trim());
+            params.append("keyword", encodedKeyword);
+            }
+            params.append("minPrice", minPrice.toString());
+            params.append("maxPrice", priceRange.toString());
+            params.append("page", page.toString());
+            params.append("size", productsPerPage.toString());
 
-        const response = await fetch(`http://localhost:8080/products/filter?${params.toString()}`);
-        const data = await response.json();
-        setProducts(data.content);
-        setTotalPages(data.totalPages);
+            console.log("Filter URL:", `http://localhost:8080/products/filter?${params.toString()}`); // Debug URL
+            const response = await fetch(`http://localhost:8080/products/filter?${params.toString()}`);
+            if (!response.ok) {
+            throw new Error("Lỗi khi tải sản phẩm từ server");
+            }
+            const data = await response.json();
+            setProducts(data.content || []);
+            setTotalPages(data.totalPages || 1);
         } catch (error) {
-        console.error("Lỗi khi lọc sản phẩm:", error);
+            console.error("Lỗi khi lọc sản phẩm:", error);
+            setProducts([]);
+            setTotalPages(1);
+            toast.error("Không thể tải sản phẩm. Vui lòng thử lại!", {
+            position: "top-right",
+            autoClose: 3000,
+            });
         }
     };
 
@@ -108,15 +119,17 @@ export default function Shop() {
         setCurrentPage(1);
         const params = new URLSearchParams();
         if (searchQuery.trim()) {
-        params.append("keyword", encodeURIComponent(searchQuery.trim()));
+            // Chỉ mã hóa một lần
+            params.append("keyword", encodeURIComponent(searchQuery.trim()));
         } else {
-        toast.info("Đã xóa từ khóa tìm kiếm. Hiển thị tất cả sản phẩm.", {
+            setSearchQuery("");
+            toast.info("Đã xóa từ khóa tìm kiếm. Hiển thị tất cả sản phẩm.", {
             position: "top-right",
             autoClose: 3000,
-        });
+            });
         }
         if (selectedCategory !== "*") {
-        params.append("categoryId", selectedCategory);
+            params.append("categoryId", selectedCategory);
         }
         params.append("maxPrice", priceRange.toString());
         router.push(`/user/shop?${params.toString()}`);
@@ -125,6 +138,16 @@ export default function Shop() {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
+        const params = new URLSearchParams();
+        if (selectedCategory !== "*") {
+        params.append("categoryId", selectedCategory);
+        }
+        if (searchQuery.trim()) {
+        params.append("keyword", searchQuery.trim());
+        }
+        params.append("maxPrice", priceRange.toString());
+        params.append("page", page.toString());
+        router.push(`/user/shop?${params.toString()}`);
     };
 
     return (
@@ -138,7 +161,16 @@ export default function Shop() {
                     className={`w-full text-left p-2 hover:bg-red-50 hover:text-red-500 rounded ${
                     selectedCategory === "*" ? "bg-red-50 text-red-500 font-medium" : ""
                     }`}
-                    onClick={() => setSelectedCategory("*")}
+                    onClick={() => {
+                    setSelectedCategory("*");
+                    const params = new URLSearchParams();
+                    if (searchQuery.trim()) {
+                        params.append("keyword", encodeURIComponent(searchQuery.trim()));
+                    }
+                    params.append("maxPrice", priceRange.toString());
+                    router.push(`/user/shop?${params.toString()}`);
+                    filterAndSearchProducts(1);
+                    }}
                 >
                     Tất cả
                 </button>
@@ -151,7 +183,17 @@ export default function Shop() {
                         ? "bg-red-50 text-red-500 font-medium"
                         : ""
                     }`}
-                    onClick={() => setSelectedCategory(category.categoryID.toString())}
+                    onClick={() => {
+                        setSelectedCategory(category.categoryID.toString());
+                        const params = new URLSearchParams();
+                        params.append("categoryId", category.categoryID.toString());
+                        if (searchQuery.trim()) {
+                        params.append("keyword", encodeURIComponent(searchQuery.trim()));
+                        }
+                        params.append("maxPrice", priceRange.toString());
+                        router.push(`/user/shop?${params.toString()}`);
+                        filterAndSearchProducts(1);
+                    }}
                     >
                     {category.categoryName}
                     </button>

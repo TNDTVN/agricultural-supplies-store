@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -13,6 +13,8 @@ import "./globals.css";
 
 interface AuthContextType {
   setIsLoginModalOpen: (open: boolean) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,10 +41,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [justLoggedOut, setJustLoggedOut] = useState(false); // Thêm trạng thái tạm thời cho đăng xuất
 
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Khởi tạo searchQuery từ URL khi component mount
+  useEffect(() => {
+    const keywordFromUrl = searchParams.get("keyword");
+    if (keywordFromUrl) {
+      setSearchQuery(decodeURIComponent(keywordFromUrl));
+    }
+  }, []);
 
   // Cập nhật tiêu đề trang khi route thay đổi
   const getPageTitle = (path: string) => {
@@ -52,10 +62,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "/user/contact": "Liên hệ",
       "/user/cart": "Giỏ hàng",
       "/user/notifications": "Thông báo",
-      "/user/shop" : "Cửa hàng",
+      "/user/shop": "Cửa hàng",
       "/user/purchased-products": "Sản phẩm đã mua",
       "/user/history": "Lịch sử mua hàng",
-      "/user/profile": "Thông tin cá nhân"
+      "/user/profile": "Thông tin cá nhân",
     };
     return (
       titleMap[path] ||
@@ -85,21 +95,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         position: "top-right",
         autoClose: 3000,
       });
-      sessionStorage.removeItem("justLoggedOut"); // Xóa cờ sau khi hiển thị toast
+      sessionStorage.removeItem("justLoggedOut");
     }
   }, [pathname, isLoggedIn]);
 
-  // Giữ nguyên handleLogout hiện tại
   const handleLogout = () => {
     sessionStorage.removeItem("accountID");
     sessionStorage.removeItem("role");
+    sessionStorage.setItem("justLoggedOut", "true");
     setIsLoggedIn(false);
     resetFormAndError();
-    toast.success("Đăng xuất thành công!", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-    router.push("/user"); // Chuyển hướng về trang chủ sau khi đăng xuất
+    router.push("/user");
   };
 
   const resetFormAndError = () => {
@@ -120,6 +126,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const toastId = toast.loading("Đang xử lý, vui lòng đợi...", {
+      position: "top-right",
+    });
+
     try {
       const response = await fetch("http://localhost:8080/accounts/login", {
         method: "POST",
@@ -141,22 +151,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       setIsLoginModalOpen(false);
       resetFormAndError();
 
+      toast.update(toastId, {
+        render: "Đăng nhập thành công!",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+
       if (role === "ADMIN" || role === "EMPLOYEE") {
-        sessionStorage.setItem("justLoggedIn", "true"); // Đánh dấu vừa đăng nhập
-        router.push("/admin"); // Chuyển hướng ngay lập tức
-      } else {
-        toast.success("Đăng nhập thành công!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        sessionStorage.setItem("justLoggedIn", "true");
+        router.push("/admin");
       }
     } catch (err: any) {
+      toast.update(toastId, {
+        render: err.message,
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
       setError(err.message);
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    const toastId = toast.loading("Đang xử lý, vui lòng đợi...", {
+      position: "top-right",
+    });
+
     try {
       const response = await fetch("http://localhost:8080/accounts/register", {
         method: "POST",
@@ -169,22 +191,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         throw new Error(errorText || "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
       }
 
-      toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {
-        position: "top-right",
+      toast.update(toastId, {
+        render: "Đăng ký thành công! Vui lòng đăng nhập.",
+        type: "success",
+        isLoading: false,
         autoClose: 3000,
       });
       setIsRegisterModalOpen(false);
       setIsLoginModalOpen(true);
       resetFormAndError();
     } catch (err: any) {
+      toast.update(toastId, {
+        render: err.message,
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
       setError(err.message);
     }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const processingToastId = toast.loading("Đang xử lý vui lòng đợi!", {
+    const toastId = toast.loading("Đang xử lý, vui lòng đợi...", {
       position: "top-right",
     });
 
@@ -200,8 +229,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         throw new Error(errorText || "Không tìm thấy email.");
       }
 
-      // Cập nhật toast thành công sau khi request hoàn tất
-      toast.update(processingToastId, {
+      toast.update(toastId, {
         render: "Link đặt lại mật khẩu đã được gửi qua email!",
         type: "success",
         isLoading: false,
@@ -212,8 +240,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       setIsLoginModalOpen(true);
       resetFormAndError();
     } catch (err: any) {
-      // Cập nhật toast thành lỗi nếu có lỗi xảy ra
-      toast.update(processingToastId, {
+      toast.update(toastId, {
         render: err.message,
         type: "error",
         isLoading: false,
@@ -225,10 +252,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    const toastId = toast.loading("Đang xử lý, vui lòng đợi...", {
+      position: "top-right",
+    });
+
     if (newPassword !== confirmPassword) {
+      toast.update(toastId, {
+        render: "Mật khẩu mới và xác nhận mật khẩu không khớp!",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
       setError("Mật khẩu mới và xác nhận mật khẩu không khớp!");
       return;
     }
+
     try {
       const accountID = sessionStorage.getItem("accountID");
       const response = await fetch("http://localhost:8080/accounts/change-password", {
@@ -242,27 +280,41 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         throw new Error(errorText || "Đổi mật khẩu thất bại!");
       }
 
-      toast.success("Đổi mật khẩu thành công!", {
-        position: "top-right",
+      toast.update(toastId, {
+        render: "Đổi mật khẩu thành công!",
+        type: "success",
+        isLoading: false,
         autoClose: 3000,
       });
       setIsChangePasswordModalOpen(false);
       resetFormAndError();
     } catch (err: any) {
+      toast.update(toastId, {
+        render: err.message,
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
       setError(err.message);
     }
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-      if (searchQuery.trim()) {
-          router.push(`/user/shop?keyword=${encodeURIComponent(searchQuery.trim())}`);
-          setSearchQuery("");
-      }
+    if (searchQuery.trim()) {
+        const params = new URLSearchParams();
+        params.set("keyword", searchQuery.trim());
+        router.push(`/user/shop?${params.toString()}`);
+    } else {
+        toast.info("Vui lòng nhập từ khóa tìm kiếm!", {
+            position: "top-right",
+            autoClose: 3000,
+        });
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ setIsLoginModalOpen }}>
+    <AuthContext.Provider value={{ setIsLoginModalOpen, searchQuery, setSearchQuery }}>
       <html lang="vi">
         <body className="flex flex-col min-h-screen bg-white">
           <nav className="fixed top-0 left-0 w-full flex items-center justify-between bg-green-700 p-4 text-white z-10 shadow-md">
@@ -688,6 +740,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <Button type="submit">Xác nhận</Button>
                   </div>
                 </form>
+
               </div>
             </div>
           )}
