@@ -30,10 +30,11 @@ import {
   User2Icon,
   UserCheck,
   Users,
-  Users2
+  Users2,
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify"; // Thêm import toast
 
 const allItems = [
   { title: "Home", url: "/admin", icon: Home, roles: ["ADMIN", "EMPLOYEE"] },
@@ -91,6 +92,7 @@ export function AppSidebar() {
         .catch((err) => {
           console.error("Lỗi khi lấy thông tin tài khoản:", err);
           setProfileImage(null);
+          toast.error("Lỗi khi lấy thông tin tài khoản"); // Thêm toast cho lỗi
         });
     }
   }, []);
@@ -109,6 +111,7 @@ export function AppSidebar() {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setError("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+      toast.error("Mật khẩu mới và xác nhận mật khẩu không khớp!"); // Thêm toast cho lỗi
       return;
     }
     try {
@@ -124,11 +127,12 @@ export function AppSidebar() {
         throw new Error(errorText || "Đổi mật khẩu thất bại!");
       }
 
-      alert("Đổi mật khẩu thành công!");
+      toast.success("Đổi mật khẩu thành công!"); // Thay alert bằng toast
       setIsChangePasswordModalOpen(false);
       resetFormAndError();
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message); // Thêm toast cho lỗi
     }
   };
 
