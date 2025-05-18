@@ -78,19 +78,22 @@ export default function ProductIndex() {
 
     const deleteProduct = async (id: number) => {
         if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
-
+    
         try {
             const response = await fetch(`http://localhost:8080/products/delete/${id}`, { method: "DELETE" });
-            if (!response.ok) throw new Error("Không thể xóa sản phẩm");
-
+            if (!response.ok) {
+                const errorData = await response.text();
+                throw new Error(errorData || "Không thể xóa sản phẩm");
+            }
+    
             toast.success("Xóa sản phẩm thành công!", {
                 position: "top-right",
                 autoClose: 3000,
             });
-
+    
             fetchProducts(currentPage);
         } catch (error) {
-            toast.error("Có lỗi khi xóa sản phẩm: " + (error as Error).message, {
+            toast.error((error as Error).message, {
                 position: "top-right",
                 autoClose: 3000,
             });
